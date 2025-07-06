@@ -1,0 +1,123 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:extensions="clr-namespace:DevCardsManager"
+        xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="600"
+        x:Class="DevCardsManager.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="420" Height="600"
+        Icon="/Assets/logo.ico"
+        Title="CardsManager">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+
+        <Style Selector=":is(Panel).cards-list">
+            <Style Selector="^ :is(Button)">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="Background" Value="Transparent" />
+
+                <Style Selector="^:pressed ContentPresenter">
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="^:disabled ContentPresenter">
+                    <Setter Property="Opacity" Value="0.3" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+            </Style>
+
+            <Style Selector="^ Button.insert">
+                <Setter Property="ContentTemplate">
+                    <DataTemplate>
+                        <Image Source="/Assets/insert_32x32.png" Stretch="Fill" />
+                    </DataTemplate>
+                </Setter>
+            </Style>
+
+            <Style Selector="^ Button.insert-on-time">
+                <Setter Property="ContentTemplate">
+                    <DataTemplate>
+                        <Image Source="/Assets/insert_on_time_32x32.png" Stretch="Fill" />
+                    </DataTemplate>
+                </Setter>
+            </Style>
+
+            <Style Selector="^ Button.remove">
+                <Setter Property="ContentTemplate">
+                    <DataTemplate>
+                        <Image Source="/Assets/remove_32x32.png" Stretch="Fill" />
+                    </DataTemplate>
+                </Setter>
+            </Style>
+        </Style>
+
+        <Style Selector="MenuItem">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Padding" Value="5" />
+        </Style>
+
+    </Window.Styles>
+
+
+    <Grid>
+        <TabControl>
+            <TabItem Header="Карты">
+                <Grid RowDefinitions="Auto,*" ColumnDefinitions="*" Classes="cards-list">
+                    <Menu>
+                        <MenuItem Command="{Binding UpdateCardsCommand}">
+                            <MenuItem.Header>
+                                <Image Source="/Assets/update_32x32.png" />
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem Command="{Binding SortCardsCommand}">
+                            <MenuItem.Header>
+                                <Image Source="/Assets/sort_32x32.png" />
+                            </MenuItem.Header>
+                        </MenuItem>
+                    </Menu>
+
+                    <ListBox Grid.Row="1" Grid.Column="0" x:Name="CardsListBox"
+                             ItemsSource="{Binding Cards}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="3" >
+                                    <Image Source="/Assets/card_32x23.png" />
+                                    <Button Classes="insert"
+                                            Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardCommand}"
+                                            CommandParameter="{Binding}"
+                                            extensions:ControlExtensions.ToolTipText="Приложить карту"/>
+                                    <Button Classes="insert-on-time"
+                                            Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeCommand}"
+                                            CommandParameter="{Binding}">
+                                        <ToolTip.Tip>
+                                            <TextBlock Text="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту на {0} секунд, затем убрать'}" />
+                                        </ToolTip.Tip>
+                                    </Button>
+                                    <Button Classes="remove"
+                                            Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RemoveCardCommand}"
+                                            CommandParameter="{Binding}"
+                                            extensions:ControlExtensions.ToolTipText="Убрать карту"/>
+                                    <TextBlock Text="{Binding CardName}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Лог">
+                <TextBox Text="{Binding Log}" />
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
