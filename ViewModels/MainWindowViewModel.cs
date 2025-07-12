@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -13,6 +14,8 @@ namespace DevCardsManager.ViewModels;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {
+    private const string _appsettingsFileName = "appsettings.json";
+
     private string _allCardsDirectoryPath;
     private string _insertedCardDirectoryPath;
     private ObservableCollection<CardViewModel> _cards;
@@ -26,8 +29,8 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             Settings = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional:false)
-                .AddJsonFile("appsettings.Development.json", optional:true)
+                .AddJsonFile(_appsettingsFileName, optional: false)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build()
                 .Get<Settings>()!;
 
@@ -37,10 +40,11 @@ public sealed class MainWindowViewModel : ViewModelBase
             InsertCardCommand = new RelayCommand<CardViewModel>(InsertCard);
             InsertCardOnTimeCommand = new RelayCommand<CardViewModel>(InsertCardOnTimeAsync);
             RemoveCardCommand = new RelayCommand<CardViewModel>(RemoveCard, CanRemoveCard);
+            PinCardCommand = new RelayCommand<CardViewModel>(PinCard);
             ReloadSettingsFileContentCommand = new RelayCommand(LoadSettingsFileContent);
             SaveSettingsFileContentCommand = new RelayCommand(SaveSettingsFileContent);
             UpdateCardsCommand = new RelayCommand(ActualizeCurrentState);
-            SortCardsCommand = new RelayCommand(SortCards);
+            SortCardsCommand = new RelayCommand(() => SortCards());
 
             ActualizeCurrentState();
         }
@@ -105,11 +109,19 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (!Directory.Exists(_allCardsDirectoryPath))
             return;
 
-        _sortAscending = true;
-        Cards = new ObservableCollection<CardViewModel>(
+        _cards = new ObservableCollection<CardViewModel>(
                 Directory.GetFiles(_allCardsDirectoryPath)
                     .Select(path => new CardViewModel { Path = path })
                     .OrderBy(card => card.CardName));
+
+        Settings.PinnedCards.ForEach(pinnedCardName =>
+        {
+            var card = _cards.FirstOrDefault(c => c.CardName == pinnedCardName || c.FileName == pinnedCardName);
+            if (card != null)
+                card.PinIndex = _cards.Count(c => c.IsPinned);
+        });
+
+        SortCards(Settings.SortAscending);
 
         var insertedCardPath = GetInsertedCardPath();
         if (string.IsNullOrWhiteSpace(insertedCardPath))
@@ -119,7 +131,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (!File.Exists(copyInAllCardsPath))
             File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
 
-        Cards.First(c => c.FileName == Path.GetFileName(insertedCardPath)).IsInserted = true;
+        Cards.Single(c => c.FileName == Path.GetFileName(insertedCardPath)).IsInserted = true;
     }
 
     private string? GetInsertedCardPath()
@@ -175,11 +187,11 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ICommand InsertCardCommand { get; }
     public ICommand InsertCardOnTimeCommand { get; }
     public RelayCommand<CardViewModel> RemoveCardCommand { get; }
+    public ICommand PinCardCommand { get; }
     public ICommand UpdateCardsCommand { get; }
     public ICommand SortCardsCommand { get; }
     public ICommand ReloadSettingsFileContentCommand { get; private set; }
     public ICommand SaveSettingsFileContentCommand { get; private set; }
-
 
 
     private async void InsertCard(CardViewModel? card)
@@ -260,6 +272,46 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private static bool CanRemoveCard(CardViewModel? card) => card?.IsInserted == true;
 
+    private void PinCard(CardViewModel? card)
+    {
+        if (card == null)
+            return;
+
+        if (card.IsPinned)
+        {
+            card.UnPin();
+            Settings.PinnedCards.Remove(card.CardName);
+        }
+        else
+        {
+            var lastPinIndex = _cards.OrderBy(c => c.PinIndex).Last().PinIndex;
+            card.PinIndex = lastPinIndex + 1;
+            Settings.PinnedCards.Add(card.CardName);
+        }
+
+        Settings.PinnedCards.RemoveAll(cardName => Cards.All(c => c.CardName != cardName));
+        SaveSettings();
+
+        SortCards(_sortAscending);
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var settingsContent = JsonSerializer.Serialize(Settings, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+            File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), _appsettingsFileName), settingsContent);
+        }
+        catch (Exception e)
+        {
+            LogException(e);
+        }
+    }
+
     private void LoadSettingsFileContent()
     {
         throw new NotImplementedException();
@@ -271,15 +323,18 @@ public sealed class MainWindowViewModel : ViewModelBase
         throw new NotImplementedException();
     }
 
-    private void SortCards()
+    private void SortCards(bool? ascending = null)
     {
-        _sortAscending = !_sortAscending;
+        _sortAscending = ascending ?? !_sortAscending;
 
-        var orderedCards = _sortAscending
-            ? _cards.OrderBy(c => c.CardName)
-            : _cards.OrderByDescending(c => c.CardName);
+        var pinnedCards = _cards.Where(c => c.IsPinned).ToList();
+        var unpinnedCards = _cards.Except(pinnedCards);
 
-        Cards = new ObservableCollection<CardViewModel>(orderedCards);
+        unpinnedCards = _sortAscending
+            ? unpinnedCards.OrderBy(c => c.CardName)
+            : unpinnedCards.OrderByDescending(c => c.CardName);
+
+        Cards = new ObservableCollection<CardViewModel>(pinnedCards.Union(unpinnedCards));
     }
 
     private void LogMessage(string message)
