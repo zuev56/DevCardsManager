@@ -10,7 +10,7 @@
     </Application.DataTemplates>
 
     <Application.Resources>
-
+        <local:EqualsConverter x:Key="EqualsConverter" />
     </Application.Resources>
   
     <Application.Styles>

@@ -93,15 +93,30 @@
                             </DataTriggerBehavior>
 
                             <!-- Кнопка полупрозрачная, когда мышь над карточкой, но карточка не закреплена -->
+                            <!-- Светлая тема -->
                             <DataTriggerBehavior Value="True">
                                 <DataTriggerBehavior.Binding>
                                     <MultiBinding Converter="{x:Static BoolConverters.And}" >
+                                        <Binding Path="$parent[ListBoxItem].ActualThemeVariant" Converter="{StaticResource EqualsConverter}" ConverterParameter="{x:Static ThemeVariant.Light}" />
                                         <Binding Path="!$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
                                         <Binding Path="$parent[ListBoxItem].IsPointerOver" />
                                     </MultiBinding>
                                 </DataTriggerBehavior.Binding>
-                                <!-- <ChangePropertyAction PropertyName="Background" Value="White" /> -->
-                                <ChangePropertyAction PropertyName="Opacity" Value="0.3" />
+                                <ChangePropertyAction PropertyName="Background" Value="White" />
+                                <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
+                                <ChangePropertyAction PropertyName="BorderBrush" Value="White" />
+                                <ChangePropertyAction PropertyName="BorderThickness" Value="1" />
+                            </DataTriggerBehavior>
+                            <!-- Тёмная тема -->
+                            <DataTriggerBehavior Value="True">
+                                <DataTriggerBehavior.Binding>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}" >
+                                        <Binding Path="$parent[ListBoxItem].ActualThemeVariant" Converter="{StaticResource EqualsConverter}" ConverterParameter="{x:Static ThemeVariant.Dark}" />
+                                        <Binding Path="!$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
+                                        <Binding Path="$parent[ListBoxItem].IsPointerOver" />
+                                    </MultiBinding>
+                                </DataTriggerBehavior.Binding>
+                                <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
                             </DataTriggerBehavior>
 
                             <!-- Кнопка скрыта, если мышь не над карточкой и карточка не закреплена -->
@@ -145,6 +160,11 @@
                         <MenuItem Command="{Binding SortCardsCommand}">
                             <MenuItem.Header>
                                 <Image Source="/Assets/sort_32x32.png" />
+                            </MenuItem.Header>
+                        </MenuItem>
+                        <MenuItem HorizontalAlignment="Right" Click="ChangeThemeMenuItem_OnClick">
+                            <MenuItem.Header>
+                                <Image Source="/Assets/ui-mode_32x32.png" Width="21" />
                             </MenuItem.Header>
                         </MenuItem>
                     </Menu>
