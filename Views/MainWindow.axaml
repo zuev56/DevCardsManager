@@ -117,6 +117,8 @@
                                     </MultiBinding>
                                 </DataTriggerBehavior.Binding>
                                 <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
+                                <ChangePropertyAction PropertyName="Background" Value="Transparent" />
+                                <ChangePropertyAction PropertyName="BorderThickness" Value="0" />
                             </DataTriggerBehavior>
 
                             <!-- Кнопка скрыта, если мышь не над карточкой и карточка не закреплена -->
