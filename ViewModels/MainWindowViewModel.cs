@@ -2,38 +2,29 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Configuration;
-using static System.Environment;
 
 namespace DevCardsManager.ViewModels;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {
-    private const string _appsettingsFileName = "appsettings.json";
 
     private string _allCardsDirectoryPath;
     private string _insertedCardDirectoryPath;
     private ObservableCollection<CardViewModel> _cards;
     private string _log = string.Empty;
     private FileSystemWatcher _fileSystemWatcher = new();
-    private bool _sortAscending = true;
     private string _filterText;
 
     public MainWindowViewModel()
     {
         try
         {
-            Settings = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(_appsettingsFileName, optional: false)
-                .AddJsonFile("appsettings.Development.json", optional: true)
-                .Build()
-                .Get<Settings>()!;
+            SettingsViewModel = new SettingsViewModel();
+            SettingsViewModel.ActualizeTheme();
 
             AllCardsDirectoryPath = Settings.AllCardsPath;
             InsertedCardDirectoryPath = Settings.InsertedCardPath;
@@ -42,23 +33,34 @@ public sealed class MainWindowViewModel : ViewModelBase
             InsertCardOnTimeCommand = new RelayCommand<CardViewModel>(InsertCardOnTimeAsync);
             RemoveCardCommand = new RelayCommand<CardViewModel>(RemoveCard, CanRemoveCard);
             PinCardCommand = new RelayCommand<CardViewModel>(PinCard);
-            ReloadSettingsFileContentCommand = new RelayCommand(LoadSettingsFileContent);
-            SaveSettingsFileContentCommand = new RelayCommand(SaveSettingsFileContent);
             UpdateCardsCommand = new RelayCommand(ActualizeCurrentState);
-            SortCardsCommand = new RelayCommand(() => SortCards());
+            ChangeSortOrderCommand = new RelayCommand(ChangeSortOrder);
 
             ActualizeCurrentState();
         }
         catch (Exception e)
         {
-            LogException(e);
+            Logger.LogException(e);
         }
     }
 
-    private Settings Settings { get; set; }
+    public SettingsViewModel SettingsViewModel { get; }
+    private Settings Settings => SettingsViewModel.Settings;
     public int InsertCardOnTimeSeconds => Settings.InsertCardOnTimeMs / 1000;
     public Func<string, Task> AddToClipboardAsync { get; set; }
     public Func<Task<string?>> ReadClipboardAsync { get; set; }
+
+    public int SelectedTabIndex
+    {
+        set
+        {
+            switch (value)
+            {
+                case 0: SortCards(); break;
+                case 1: SettingsViewModel.UpdateParameters(); break;
+            }
+        }
+    }
 
     public string AllCardsDirectoryPath
     {
@@ -136,7 +138,7 @@ public sealed class MainWindowViewModel : ViewModelBase
                 card.PinIndex = _cards.Count(c => c.IsPinned);
         });
 
-        SortCards(Settings.SortAscending);
+        SortCards();
 
         var insertedCardPath = GetInsertedCardPath();
         if (string.IsNullOrWhiteSpace(insertedCardPath))
@@ -163,7 +165,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void FileSystemWatcher_OnError(object sender, ErrorEventArgs args)
     {
-        LogException(args.GetException());
+        Logger.LogException(args.GetException());
     }
 
     private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
@@ -184,8 +186,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string SettingsFileContent { get; set; }
-
     public string Log
     {
         get => _log;
@@ -204,9 +204,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     public RelayCommand<CardViewModel> RemoveCardCommand { get; }
     public ICommand PinCardCommand { get; }
     public ICommand UpdateCardsCommand { get; }
-    public ICommand SortCardsCommand { get; }
-    public ICommand ReloadSettingsFileContentCommand { get; private set; }
-    public ICommand SaveSettingsFileContentCommand { get; private set; }
+    public ICommand ChangeSortOrderCommand { get; }
 
 
     private async void InsertCard(CardViewModel? card)
@@ -221,25 +219,25 @@ public sealed class MainWindowViewModel : ViewModelBase
                 Thread.Sleep(Settings.ReplaceCardDelayMs);
             }
 
-            LogMessage($"Inserting card: '{card!.CardName}'");
+            Logger.LogMessage($"Inserting card: '{card!.CardName}'");
 
             var destinationPath = Path.Combine(InsertedCardDirectoryPath, card.FileName);
 
             File.Copy(card.Path, destinationPath);
 
             card.IsInserted = true;
-            LogMessage($"Card '{card.CardName}' inserted!");
+            Logger.LogMessage($"Card '{card.CardName}' inserted!");
 
             await AddToClipboardAsync(card.CardName);
 
             var checkClipboardText = await ReadClipboardAsync();
-            LogMessage($"Clipboard: '{checkClipboardText}'");
+            Logger.LogMessage($"Clipboard: '{checkClipboardText}'");
 
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
         catch (Exception e)
         {
-            LogException(e);
+            Logger.LogException(e);
         }
     }
 
@@ -247,13 +245,13 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         InsertCard(card);
 
-        LogMessage($"Wait for {TimeSpan.FromMilliseconds(Settings.InsertCardOnTimeMs).TotalSeconds} seconds.");
+        Logger.LogMessage($"Wait for {TimeSpan.FromMilliseconds(Settings.InsertCardOnTimeMs).TotalSeconds} seconds.");
         await Task.Delay(Settings.InsertCardOnTimeMs);
 
         if (card!.IsInserted)
             RemoveCard(card);
         else
-            LogMessage($"Card '{card.CardName}' already removed.");
+            Logger.LogMessage($"Card '{card.CardName}' already removed.");
     }
 
     private void RemoveCard(CardViewModel? card)
@@ -265,7 +263,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             var insertedCardPath = GetInsertedCardPath();
             if (insertedCardPath != null)
             {
-                LogMessage($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
+                Logger.LogMessage($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
 
                 File.Move(insertedCardPath,
                     Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
@@ -276,12 +274,12 @@ public sealed class MainWindowViewModel : ViewModelBase
                     insertedCard.IsInserted = false;
             }
 
-            LogMessage($"Card '{Path.GetFileNameWithoutExtension(insertedCardPath)}' successfully removed.");
+            Logger.LogMessage($"Card '{Path.GetFileNameWithoutExtension(insertedCardPath)}' successfully removed.");
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
         catch (Exception e)
         {
-            LogException(e);
+            Logger.LogException(e);
         }
     }
 
@@ -305,64 +303,27 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
 
         Settings.PinnedCards.RemoveAll(cardName => Cards.All(c => c.CardName != cardName));
-        SaveSettings();
+        SettingsViewModel.SaveSettings();
 
-        SortCards(_sortAscending);
+        SortCards();
     }
 
-    private void SaveSettings()
+    private void ChangeSortOrder()
     {
-        try
-        {
-            var settingsContent = JsonSerializer.Serialize(Settings, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
-            File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), _appsettingsFileName), settingsContent);
-        }
-        catch (Exception e)
-        {
-            LogException(e);
-        }
+        Settings.SortAscending = !Settings.SortAscending;
+        SettingsViewModel.SaveSettings();
+        SortCards();
     }
 
-    private void LoadSettingsFileContent()
+    private void SortCards()
     {
-        throw new NotImplementedException();
-    }
-
-
-    private void SaveSettingsFileContent()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void SortCards(bool? ascending = null)
-    {
-        _sortAscending = ascending ?? !_sortAscending;
-
         var pinnedCards = _cards.Where(c => c.IsPinned).ToList();
         var unpinnedCards = _cards.Except(pinnedCards);
 
-        unpinnedCards = _sortAscending
+        unpinnedCards = Settings.SortAscending
             ? unpinnedCards.OrderBy(c => c.CardName)
             : unpinnedCards.OrderByDescending(c => c.CardName);
 
         Cards = new ObservableCollection<CardViewModel>(pinnedCards.Union(unpinnedCards));
-    }
-
-    private void LogMessage(string message)
-    {
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-        Console.WriteLine(text);
-        Log += $"{NewLine}{text}";
-    }
-
-    private void LogException(Exception exception)
-    {
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff]}] {exception.GetType().Name}: {exception.Message}{NewLine}{exception.StackTrace}";
-        Console.WriteLine(text);
-        Log += $"{NewLine}{text}";
     }
 }
