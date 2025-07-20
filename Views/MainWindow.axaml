@@ -150,26 +150,31 @@
 
 
     <Grid>
-        <TabControl>
+        <TabControl Margin="0,0,0,10">
             <TabItem Header="Карты">
-                <Grid RowDefinitions="Auto,*" ColumnDefinitions="*" Classes="cards-list">
-                    <Menu Classes="top-menu-panel">
-                        <MenuItem Command="{Binding UpdateCardsCommand}">
-                            <MenuItem.Header>
-                                <Image Source="/Assets/update_32x32.png" />
-                            </MenuItem.Header>
-                        </MenuItem>
-                        <MenuItem Command="{Binding SortCardsCommand}">
-                            <MenuItem.Header>
-                                <Image Source="/Assets/sort_32x32.png" />
-                            </MenuItem.Header>
-                        </MenuItem>
-                        <MenuItem HorizontalAlignment="Right" Click="ChangeThemeMenuItem_OnClick">
-                            <MenuItem.Header>
-                                <Image Source="/Assets/ui-mode_32x32.png" Width="21" />
-                            </MenuItem.Header>
-                        </MenuItem>
-                    </Menu>
+                <Grid RowDefinitions="Auto,*" Classes="cards-list">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Menu Grid.Column="0" Classes="top-menu-panel">
+                            <MenuItem Command="{Binding UpdateCardsCommand}">
+                                <MenuItem.Header>
+                                    <Image Source="/Assets/update_32x32.png" />
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding SortCardsCommand}">
+                                <MenuItem.Header>
+                                    <Image Source="/Assets/sort_32x32.png" />
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem HorizontalAlignment="Right" Click="ChangeThemeMenuItem_OnClick">
+                                <MenuItem.Header>
+                                    <Image Source="/Assets/ui-mode_32x32.png" Width="21" />
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </Menu>
+
+                        <TextBox Grid.Column="1" Width="200" Watermark="Фильтр" Margin="0,0,0,3"
+                                 Text="{Binding FilterText, Mode=OneWayToSource}" />
+                    </Grid>
 
                     <ListBox Grid.Row="1" Grid.Column="0" x:Name="CardsListBox"
                              ItemsSource="{Binding Cards}">

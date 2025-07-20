@@ -22,6 +22,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private string _log = string.Empty;
     private FileSystemWatcher _fileSystemWatcher = new();
     private bool _sortAscending = true;
+    private string _filterText;
 
     public MainWindowViewModel()
     {
@@ -104,15 +105,29 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public string FilterText
+    {
+        get => _filterText;
+        set
+        {
+            if (value == _filterText)
+                return;
+
+            _filterText = value;
+            ActualizeCurrentState();
+        }
+    }
+
     private void ActualizeCurrentState()
     {
         if (!Directory.Exists(_allCardsDirectoryPath))
             return;
 
-        _cards = new ObservableCollection<CardViewModel>(
-                Directory.GetFiles(_allCardsDirectoryPath)
-                    .Select(path => new CardViewModel { Path = path })
-                    .OrderBy(card => card.CardName));
+        var cards = Directory.GetFiles(_allCardsDirectoryPath).Select(path => new CardViewModel { Path = path });
+        if (!string.IsNullOrWhiteSpace(_filterText))
+            cards = cards.Where(c => c.CardName.Contains(_filterText));
+
+        _cards = new ObservableCollection<CardViewModel>(cards.OrderBy(card => card.CardName));
 
         Settings.PinnedCards.ForEach(pinnedCardName =>
         {
