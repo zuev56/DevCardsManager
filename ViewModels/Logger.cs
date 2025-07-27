@@ -1,21 +1,34 @@
 using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DevCardsManager.ViewModels;
 
-internal static class Logger
+public class Logger : ObservableObject
 {
-    public static string Log { get; private set; } = string.Empty;
+    private string _log = string.Empty;
 
-    public static void LogMessage(string message)
+    public string Log
     {
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-        Console.WriteLine(text);
-        Log += $"{Environment.NewLine}{text}";
+        get => _log;
+        private set
+        {
+            _log = value;
+            OnPropertyChanged();
+        }
     }
 
-    public static void LogException(Exception exception)
+    public void LogInfo(string message)
+        => LogMessage($"INF: {message}");
+
+    public void LogError(string message)
+        => LogMessage($"ERR: {message}");
+
+    public void LogException(Exception exception) =>
+        LogError($"{exception.GetType().Name}: {exception.Message}{Environment.NewLine}{exception.StackTrace}");
+
+    private void LogMessage(string message)
     {
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff]}] {exception.GetType().Name}: {exception.Message}{Environment.NewLine}{exception.StackTrace}";
+        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
         Console.WriteLine(text);
         Log += $"{Environment.NewLine}{text}";
     }

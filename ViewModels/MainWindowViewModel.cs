@@ -23,7 +23,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            SettingsViewModel = new SettingsViewModel();
+            Logger = new Logger();
+            SettingsViewModel = new SettingsViewModel(Logger);
             SettingsViewModel.ActualizeTheme();
 
             AllCardsDirectoryPath = Settings.AllCardsPath;
@@ -44,6 +45,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public Logger Logger { get; }
     public SettingsViewModel SettingsViewModel { get; }
     private Settings Settings => SettingsViewModel.Settings;
     public int InsertCardOnTimeSeconds => Settings.InsertCardOnTimeMs / 1000;
@@ -156,9 +158,11 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(InsertedCardDirectoryPath))
             return null;
 
-        var insertedCardDirFiles = Directory.GetFiles(InsertedCardDirectoryPath);
+        var insertedCardDirFiles = Directory.GetFiles(InsertedCardDirectoryPath, "*.bin");
         if (insertedCardDirFiles.Length > 1)
-            throw new InvalidOperationException("В каталоге с приложенными картами несколько файлов!");
+        {
+            Logger.LogInfo("В каталоге с приложенными картами лежит несколько карт!");
+        };
 
         return insertedCardDirFiles.SingleOrDefault();
     }
@@ -186,19 +190,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string Log
-    {
-        get => _log;
-        set
-        {
-            if (value == _log)
-                return;
-
-            _log = value;
-            OnPropertyChanged();
-        }
-    }
-
     public ICommand InsertCardCommand { get; }
     public ICommand InsertCardOnTimeCommand { get; }
     public RelayCommand<CardViewModel> RemoveCardCommand { get; }
@@ -219,19 +210,19 @@ public sealed class MainWindowViewModel : ViewModelBase
                 Thread.Sleep(Settings.ReplaceCardDelayMs);
             }
 
-            Logger.LogMessage($"Inserting card: '{card!.CardName}'");
+            Logger.LogInfo($"Inserting card: '{card!.CardName}'");
 
             var destinationPath = Path.Combine(InsertedCardDirectoryPath, card.FileName);
 
             File.Copy(card.Path, destinationPath);
 
             card.IsInserted = true;
-            Logger.LogMessage($"Card '{card.CardName}' inserted!");
+            Logger.LogInfo($"Card '{card.CardName}' inserted!");
 
             await AddToClipboardAsync(card.CardName);
 
             var checkClipboardText = await ReadClipboardAsync();
-            Logger.LogMessage($"Clipboard: '{checkClipboardText}'");
+            Logger.LogInfo($"Clipboard: '{checkClipboardText}'");
 
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
@@ -245,13 +236,13 @@ public sealed class MainWindowViewModel : ViewModelBase
     {
         InsertCard(card);
 
-        Logger.LogMessage($"Wait for {TimeSpan.FromMilliseconds(Settings.InsertCardOnTimeMs).TotalSeconds} seconds.");
+        Logger.LogInfo($"Wait for {TimeSpan.FromMilliseconds(Settings.InsertCardOnTimeMs).TotalSeconds} seconds.");
         await Task.Delay(Settings.InsertCardOnTimeMs);
 
         if (card!.IsInserted)
             RemoveCard(card);
         else
-            Logger.LogMessage($"Card '{card.CardName}' already removed.");
+            Logger.LogInfo($"Card '{card.CardName}' already removed.");
     }
 
     private void RemoveCard(CardViewModel? card)
@@ -263,7 +254,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             var insertedCardPath = GetInsertedCardPath();
             if (insertedCardPath != null)
             {
-                Logger.LogMessage($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
+                Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
 
                 File.Move(insertedCardPath,
                     Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
@@ -274,7 +265,7 @@ public sealed class MainWindowViewModel : ViewModelBase
                     insertedCard.IsInserted = false;
             }
 
-            Logger.LogMessage($"Card '{Path.GetFileNameWithoutExtension(insertedCardPath)}' successfully removed.");
+            Logger.LogInfo($"Card '{Path.GetFileNameWithoutExtension(insertedCardPath)}' successfully removed.");
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
         catch (Exception e)

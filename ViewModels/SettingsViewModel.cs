@@ -13,10 +13,12 @@ namespace DevCardsManager.ViewModels;
 
 public sealed class SettingsViewModel : ViewModelBase
 {
+    private readonly Logger _logger;
     private const string AppsettingsFileName = "appsettings.json";
 
-    public SettingsViewModel()
+    public SettingsViewModel(Logger logger)
     {
+        _logger = logger;
         InitializeSettings();
 
         UpdateParameters();
@@ -76,7 +78,7 @@ public sealed class SettingsViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            Logger.LogException(e);
+            _logger.LogException(e);
         }
     }
 
