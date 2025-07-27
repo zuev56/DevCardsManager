@@ -48,7 +48,7 @@ jobs:
   build:
 
     runs-on: windows-latest
-	
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-		
+
     # Execute all unit tests in the solution
     - name: Execute unit tests
       run: dotnet test
@@ -71,7 +71,7 @@ jobs:
         Compress-Archive -Path ./bin/DevCardsManager_Linux/* -DestinationPath ./bin/DevCardsManager_Linux.zip
 
     - name: Publish Windows x64
-	
+
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Windows
         Compress-Archive -Path ./bin/DevCardsManager_Windows/* -DestinationPath ./bin/DevCardsManager_Windows.zip
@@ -83,7 +83,7 @@ jobs:
         path: ./bin/DevCardsManager_Linux.zip
 
     - name: Upload Windows Artifact
-	
+
       uses: actions/upload-artifact@v4
       with:
         name: DevCardsManager_Windows
