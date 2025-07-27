@@ -105,7 +105,8 @@
                                 <ChangePropertyAction PropertyName="Background" Value="White" />
                                 <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
                                 <ChangePropertyAction PropertyName="BorderBrush" Value="White" />
-                                <ChangePropertyAction PropertyName="BorderThickness" Value="1" />
+                                <!-- ТУТ ОШИБКИ ПРИ БИНДИНГЕ -->
+                                <!-- <ChangePropertyAction PropertyName="BorderThickness" Value="1" /> -->
                             </DataTriggerBehavior>
                             <!-- Тёмная тема -->
                             <DataTriggerBehavior Value="True">
@@ -118,7 +119,8 @@
                                 </DataTriggerBehavior.Binding>
                                 <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
                                 <ChangePropertyAction PropertyName="Background" Value="Transparent" />
-                                <ChangePropertyAction PropertyName="BorderThickness" Value="0" />
+                                <!-- ТУТ ОШИБКИ ПРИ БИНДИНГЕ -->
+                                <!-- <ChangePropertyAction PropertyName="BorderThickness" Value="0,0,0,0" /> -->
                             </DataTriggerBehavior>
 
                             <!-- Кнопка скрыта, если мышь не над карточкой и карточка не закреплена -->
