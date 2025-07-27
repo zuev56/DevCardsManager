@@ -147,6 +147,16 @@
             </Style>
         </Style>
 
+        <Style Selector="Button.clear-filter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="ContentTemplate">
+                <DataTemplate>
+                    <Image Source="/Assets/clear_filter_32x32.png" Stretch="Uniform" Height="18" />
+                </DataTemplate>
+            </Setter>
+        </Style>
+
+
         <Style Selector=":is(Panel).parameters-list">
             <Style Selector="^ :is(TextBlock)">
                 <Setter Property="VerticalAlignment" Value="Center" />
@@ -182,15 +192,15 @@
                                     <Image Source="/Assets/sort_32x32.png" />
                                 </MenuItem.Header>
                             </MenuItem>
-                            <MenuItem HorizontalAlignment="Right" Command="{Binding SettingsViewModel.ToggleThemeCommand }">
-                                <MenuItem.Header>
-                                    <Image Source="/Assets/ui-mode_32x32.png" Width="21" />
-                                </MenuItem.Header>
-                            </MenuItem>
                         </Menu>
 
-                        <TextBox Grid.Column="1" Width="200" Watermark="Фильтр" Margin="0,0,0,3"
-                                 Text="{Binding FilterText, Mode=OneWayToSource}" />
+                        <Grid Grid.Column="1" Margin="0,0,0,3">
+                            <TextBox Width="200" Watermark="Фильтр"
+                                     Text="{Binding FilterText}" />
+                            <Button Classes="clear-filter" Command="{Binding ClearFilterCommand}"
+                                    HorizontalAlignment="Right"
+                                    IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </Grid>
                     </Grid>
 
                     <ListBox Grid.Row="1" x:Name="CardsListBox"

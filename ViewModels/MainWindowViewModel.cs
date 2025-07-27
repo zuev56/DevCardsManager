@@ -11,13 +11,11 @@ namespace DevCardsManager.ViewModels;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {
-
     private string _allCardsDirectoryPath;
     private string _insertedCardDirectoryPath;
     private ObservableCollection<CardViewModel> _cards;
-    private string _log = string.Empty;
     private FileSystemWatcher _fileSystemWatcher = new();
-    private string _filterText;
+    private string? _filterText;
 
     public MainWindowViewModel()
     {
@@ -36,6 +34,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             PinCardCommand = new RelayCommand<CardViewModel>(PinCard);
             UpdateCardsCommand = new RelayCommand(ActualizeCurrentState);
             ChangeSortOrderCommand = new RelayCommand(ChangeSortOrder);
+            ClearFilterCommand = new RelayCommand(() => FilterText = null);
 
             ActualizeCurrentState();
         }
@@ -109,7 +108,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string FilterText
+    public string? FilterText
     {
         get => _filterText;
         set
@@ -118,6 +117,8 @@ public sealed class MainWindowViewModel : ViewModelBase
                 return;
 
             _filterText = value;
+            OnPropertyChanged();
+
             ActualizeCurrentState();
         }
     }
@@ -129,7 +130,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         var cards = Directory.GetFiles(_allCardsDirectoryPath).Select(path => new CardViewModel { Path = path });
         if (!string.IsNullOrWhiteSpace(_filterText))
-            cards = cards.Where(c => c.CardName.Contains(_filterText));
+            cards = cards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase));
 
         _cards = new ObservableCollection<CardViewModel>(cards.OrderBy(card => card.CardName));
 
@@ -196,6 +197,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ICommand PinCardCommand { get; }
     public ICommand UpdateCardsCommand { get; }
     public ICommand ChangeSortOrderCommand { get; }
+    public ICommand ClearFilterCommand { get; }
+
 
 
     private async void InsertCard(CardViewModel? card)
