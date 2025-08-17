@@ -70,13 +70,15 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Windows
+        Remove-Item ./bin/DevCardsManager_Windows/*.pdb
         Compress-Archive -Path ./bin/DevCardsManager_Windows/* -DestinationPath ./bin/DevCardsManager_Windows.zip
 
     - name: Publish for Linux (Linux runner)
       if: runner.os == 'Linux'
       run: |
         dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux
-        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/*
+        rm -f ./bin/DevCardsManager_Linux/*.pdb
+        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/bin/*
 
     - name: Upload Windows Artifact
       if: runner.os == 'Windows'
