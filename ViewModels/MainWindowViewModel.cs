@@ -151,7 +151,10 @@ public sealed class MainWindowViewModel : ViewModelBase
         if (!File.Exists(copyInAllCardsPath))
             File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
 
-        Cards.Single(c => c.FileName == Path.GetFileName(insertedCardPath)).IsInserted = true;
+        // Когда применён фильтр, вставленная карта может не попасть в отфильтрованный список, поэтому нужен OrDefault
+        var insertedCard = Cards.SingleOrDefault(c => c.FileName == Path.GetFileName(insertedCardPath));
+        if (insertedCard != null)
+            insertedCard.IsInserted = true;
     }
 
     private string? GetInsertedCardPath()
@@ -198,7 +201,6 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ICommand UpdateCardsCommand { get; }
     public ICommand ChangeSortOrderCommand { get; }
     public ICommand ClearFilterCommand { get; }
-
 
 
     private async void InsertCard(CardViewModel? card)
