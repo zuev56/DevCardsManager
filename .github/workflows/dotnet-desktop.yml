@@ -36,7 +36,7 @@
 # For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
 # refer to https://github.com/microsoft/github-actions-for-desktop-apps
 
-name: .NET Core Desktop
+name: .NET Core Desktop Build and Release
 
 on:
   push:
@@ -47,8 +47,10 @@ on:
 
 jobs:
   build:
-
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout
@@ -56,39 +58,39 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Install the .NET Core workload
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    # Execute all unit tests in the solution
     - name: Execute unit tests
       run: dotnet test
 
-    - name: Publish Linux x64
-      run: |
-        dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux
-        Compress-Archive -Path ./bin/DevCardsManager_Linux/* -DestinationPath ./bin/DevCardsManager_Linux.zip
-
-    - name: Publish Windows x64
-
+    - name: Publish for Windows (Windows runner)
+      if: runner.os == 'Windows'
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Windows
         Compress-Archive -Path ./bin/DevCardsManager_Windows/* -DestinationPath ./bin/DevCardsManager_Windows.zip
 
-    - name: Upload Linux Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DevCardsManager_Linux
-        path: ./bin/DevCardsManager_Linux.zip
+    - name: Publish for Linux (Linux runner)
+      if: runner.os == 'Linux'
+      run: |
+        dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux
+        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/*
 
     - name: Upload Windows Artifact
-
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
         name: DevCardsManager_Windows
         path: ./bin/DevCardsManager_Windows.zip
+
+    - name: Upload Linux Artifact
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: DevCardsManager_Linux
+        path: ./bin/DevCardsManager_Linux.zip
 
   create-release:
     needs: build
@@ -96,43 +98,21 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')  # Запускать только при push тега
     
     steps:
-    - name: Download Linux Artifact
+    - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: DevCardsManager_Linux
-
-    - name: Download Windows Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: DevCardsManager_Windows
+        path: ./artifacts
 
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        files: |
+          artifacts/DevCardsManager_Linux.zip
+          artifacts/DevCardsManager_Windows.zip
         draft: false
         prerelease: false
-
-    - name: Upload Linux Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./DevCardsManager_Linux.zip
-        asset_name: DevCardsManager_Linux.zip
-        asset_content_type: application/zip
-
-    - name: Upload Windows Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./DevCardsManager_Windows.zip
-        asset_name: DevCardsManager_Windows.zip
-        asset_content_type: application/zip
