@@ -78,7 +78,7 @@ jobs:
       run: |
         dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux
         rm -f ./bin/DevCardsManager_Linux/*.pdb
-        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/bin/*
+        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/*
 
     - name: Upload Windows Artifact
       if: runner.os == 'Windows'
