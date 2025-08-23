@@ -25,8 +25,14 @@ public sealed class Settings
     public bool UseDarkTheme { get; set; } = true;
 
     [Ignore]
+    public bool SaveCardChangesOnReturn { get; set; } = true;
+
+    [Ignore]
     public List<string> PinnedCards { get; set; } = [];
 }
 
+/// <summary>
+/// Свойства, помеченные этим атрибутом не будут выводиться в окне настроек
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class IgnoreAttribute : Attribute;

@@ -16,6 +16,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private ObservableCollection<CardViewModel> _cards;
     private FileSystemWatcher _fileSystemWatcher = new();
     private string? _filterText;
+    private bool _saveCardChangesOnReturn;
 
     public MainWindowViewModel()
     {
@@ -27,6 +28,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
             AllCardsDirectoryPath = Settings.AllCardsPath;
             InsertedCardDirectoryPath = Settings.InsertedCardPath;
+            SaveCardChangesOnReturn = Settings.SaveCardChangesOnReturn;
 
             InsertCardCommand = new RelayCommand<CardViewModel>(InsertCard);
             InsertCardOnTimeCommand = new RelayCommand<CardViewModel>(InsertCardOnTimeAsync);
@@ -120,6 +122,23 @@ public sealed class MainWindowViewModel : ViewModelBase
             OnPropertyChanged();
 
             ActualizeCurrentState();
+        }
+    }
+
+    public bool SaveCardChangesOnReturn
+    {
+        get => _saveCardChangesOnReturn;
+        set
+        {
+            if (value == _saveCardChangesOnReturn)
+                return;
+
+            Settings.SaveCardChangesOnReturn = _saveCardChangesOnReturn = value;
+            SettingsViewModel.SaveSettings();
+
+            Logger.LogInfo($"Cards will {(_saveCardChangesOnReturn ? "save" : "lose")} changes when return");
+
+            OnPropertyChanged();
         }
     }
 
@@ -259,11 +278,18 @@ public sealed class MainWindowViewModel : ViewModelBase
             var insertedCardPath = GetInsertedCardPath();
             if (insertedCardPath != null)
             {
-                Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
-
-                File.Move(insertedCardPath,
-                    Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
-                    overwrite: true);
+                if (_saveCardChangesOnReturn)
+                {
+                    Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}' (move file to all cards directory).");
+                    File.Move(insertedCardPath,
+                        Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
+                        overwrite: true);
+                }
+                else
+                {
+                    Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'. (delete file)");
+                    File.Delete(insertedCardPath);
+                }
 
                 var insertedCard = Cards.SingleOrDefault(c => c.IsInserted);
                 if (insertedCard != null)
