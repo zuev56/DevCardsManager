@@ -25,10 +25,9 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             Logger = new Logger();
             SettingsViewModel = new SettingsViewModel(Logger);
-            Logger.DetailedLogging = SettingsViewModel.Settings.DetailedLogging;
+            ApplySettings();
             SettingsViewModel.ActualizeTheme();
             SettingsViewModel.PropertyChanged += (_,_) => ApplySettings();
-            ApplySettings();
 
             InsertCardCommand = new RelayCommand<CardViewModel>(InsertCard);
             InsertCardOnTimeCommand = new RelayCommand<CardViewModel>(InsertCardOnTimeAsync);
@@ -48,6 +47,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void ApplySettings()
     {
+        Logger.DetailedLogging = Settings.DetailedLogging;
         AllCardsDirectoryPath = Settings.AllCardsPath;
         InsertedCardDirectoryPath = Settings.InsertedCardPath;
         SaveCardChangesOnReturn = Settings.SaveCardChangesOnReturn;
@@ -83,8 +83,6 @@ public sealed class MainWindowViewModel : ViewModelBase
             _allCardsDirectoryPath = value.ToOsSpecificDirectorySeparatorChar();
 
             ActualizeCurrentState();
-
-            OnPropertyChanged();
         }
     }
 
@@ -96,14 +94,14 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (value == _insertedCardDirectoryPath)
                 return;
 
+            _fileSystemWatcher.Created -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Error -= FileSystemWatcher_OnError;
+            _fileSystemWatcher.Dispose();
+
             if (Directory.Exists(value))
             {
-                _fileSystemWatcher.Created -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Deleted -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Error -= FileSystemWatcher_OnError;
-                _fileSystemWatcher.Dispose();
-
                 _insertedCardDirectoryPath = value.ToOsSpecificDirectorySeparatorChar();
                 _fileSystemWatcher = new FileSystemWatcher(_insertedCardDirectoryPath, "*.bin");
                 _fileSystemWatcher.EnableRaisingEvents = true;
@@ -112,8 +110,16 @@ public sealed class MainWindowViewModel : ViewModelBase
                 _fileSystemWatcher.Deleted += FileSystemWatcher_Changed;
                 _fileSystemWatcher.Error += FileSystemWatcher_OnError;
             }
-
-            OnPropertyChanged();
+            else
+            {
+                Logger.LogError($"Directory '{value}' does not exist, rollback to previous or default path");
+                Settings.InsertedCardPath = Directory.Exists(_insertedCardDirectoryPath)
+                    ? _insertedCardDirectoryPath
+                    : Directory.GetCurrentDirectory();
+                SettingsViewModel.SaveSettings();
+                _insertedCardDirectoryPath = Settings.InsertedCardPath;
+            }
+            ActualizeCurrentState();
         }
     }
 
@@ -176,7 +182,10 @@ public sealed class MainWindowViewModel : ViewModelBase
         try
         {
             if (!Directory.Exists(_allCardsDirectoryPath))
+            {
+                Cards.Clear();
                 return;
+            }
 
             var cards = Directory.GetFiles(_allCardsDirectoryPath).Select(path => new CardViewModel {Path = path});
             if (!string.IsNullOrWhiteSpace(_filterText))

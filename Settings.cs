@@ -28,7 +28,7 @@ public sealed class Settings
     public bool SaveCardChangesOnReturn { get; set; } = true;
 
     [DisplayName("Детальное логирование")]
-    public bool DetailedLogging { get; set; } = true;
+    public bool DetailedLogging { get; set; }
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];

@@ -32,7 +32,7 @@ public sealed class SettingsViewModel : ViewModelBase
         foreach (var parameter in Parameters)
             parameter.PropertyChanged -= Parameter_OnChanged;
 
-        Parameters = Settings.ToParameters();
+        Parameters = Settings.ToParameters(_logger);
         OnPropertyChanged(nameof(Parameters));
 
         foreach (var parameter in Parameters)
@@ -41,6 +41,15 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void Parameter_OnChanged(object? sender, PropertyChangedEventArgs e)
     {
+        var newValue = sender switch
+        {
+            StringParameterViewModel stringParameter => stringParameter.Value,
+            IntegerParameterViewModel integerParameter => integerParameter.Value.ToString(),
+            BooleanParameterViewModel booleanParameter => booleanParameter.Value.ToString(),
+            _ => throw new ArgumentOutOfRangeException(nameof(sender), "Unknown parameter type!")
+        };
+        _logger.LogInfo($"Update parameter: '{e.PropertyName}', new value: '{newValue}'");
+
         Settings = Parameters.ToSettings(Settings.PinnedCards);
 
         SaveSettings();
@@ -50,6 +59,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
         if (e.PropertyName == nameof(Settings.SortAscending))
             ActualizeTheme();
+
+        OnPropertyChanged(nameof(Settings));
     }
 
     public Settings Settings { get; private set; } = null!;
