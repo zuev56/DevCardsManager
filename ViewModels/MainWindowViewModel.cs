@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,6 +17,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private ObservableCollection<CardViewModel> _cards;
     private FileSystemWatcher _fileSystemWatcher = new();
     private string? _filterText;
+    private bool _saveCardChangesOnReturn;
 
     public MainWindowViewModel()
     {
@@ -23,10 +25,9 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             Logger = new Logger();
             SettingsViewModel = new SettingsViewModel(Logger);
+            ApplySettings();
             SettingsViewModel.ActualizeTheme();
-
-            AllCardsDirectoryPath = Settings.AllCardsPath;
-            InsertedCardDirectoryPath = Settings.InsertedCardPath;
+            SettingsViewModel.PropertyChanged += (_,_) => ApplySettings();
 
             InsertCardCommand = new RelayCommand<CardViewModel>(InsertCard);
             InsertCardOnTimeCommand = new RelayCommand<CardViewModel>(InsertCardOnTimeAsync);
@@ -42,6 +43,14 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             Logger.LogException(e);
         }
+    }
+
+    private void ApplySettings()
+    {
+        Logger.DetailedLogging = Settings.DetailedLogging;
+        AllCardsDirectoryPath = Settings.AllCardsPath;
+        InsertedCardDirectoryPath = Settings.InsertedCardPath;
+        SaveCardChangesOnReturn = Settings.SaveCardChangesOnReturn;
     }
 
     public Logger Logger { get; }
@@ -63,7 +72,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string AllCardsDirectoryPath
+    private string AllCardsDirectoryPath
     {
         get => _allCardsDirectoryPath;
         set
@@ -74,12 +83,10 @@ public sealed class MainWindowViewModel : ViewModelBase
             _allCardsDirectoryPath = value.ToOsSpecificDirectorySeparatorChar();
 
             ActualizeCurrentState();
-
-            OnPropertyChanged();
         }
     }
 
-    public string InsertedCardDirectoryPath
+    private string InsertedCardDirectoryPath
     {
         get => _insertedCardDirectoryPath;
         set
@@ -87,14 +94,14 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (value == _insertedCardDirectoryPath)
                 return;
 
+            _fileSystemWatcher.Created -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Error -= FileSystemWatcher_OnError;
+            _fileSystemWatcher.Dispose();
+
             if (Directory.Exists(value))
             {
-                _fileSystemWatcher.Created -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Deleted -= FileSystemWatcher_Changed;
-                _fileSystemWatcher.Error -= FileSystemWatcher_OnError;
-                _fileSystemWatcher.Dispose();
-
                 _insertedCardDirectoryPath = value.ToOsSpecificDirectorySeparatorChar();
                 _fileSystemWatcher = new FileSystemWatcher(_insertedCardDirectoryPath, "*.bin");
                 _fileSystemWatcher.EnableRaisingEvents = true;
@@ -103,8 +110,16 @@ public sealed class MainWindowViewModel : ViewModelBase
                 _fileSystemWatcher.Deleted += FileSystemWatcher_Changed;
                 _fileSystemWatcher.Error += FileSystemWatcher_OnError;
             }
-
-            OnPropertyChanged();
+            else
+            {
+                Logger.LogError($"Directory '{value}' does not exist, rollback to previous or default path");
+                Settings.InsertedCardPath = Directory.Exists(_insertedCardDirectoryPath)
+                    ? _insertedCardDirectoryPath
+                    : Directory.GetCurrentDirectory();
+                SettingsViewModel.SaveSettings();
+                _insertedCardDirectoryPath = Settings.InsertedCardPath;
+            }
+            ActualizeCurrentState();
         }
     }
 
@@ -123,62 +138,21 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private void ActualizeCurrentState()
+    public bool SaveCardChangesOnReturn
     {
-        if (!Directory.Exists(_allCardsDirectoryPath))
-            return;
-
-        var cards = Directory.GetFiles(_allCardsDirectoryPath).Select(path => new CardViewModel { Path = path });
-        if (!string.IsNullOrWhiteSpace(_filterText))
-            cards = cards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase));
-
-        _cards = new ObservableCollection<CardViewModel>(cards.OrderBy(card => card.CardName));
-
-        Settings.PinnedCards.ForEach(pinnedCardName =>
+        get => _saveCardChangesOnReturn;
+        set
         {
-            var card = _cards.FirstOrDefault(c => c.CardName == pinnedCardName || c.FileName == pinnedCardName);
-            if (card != null)
-                card.PinIndex = _cards.Count(c => c.IsPinned);
-        });
+            if (value == _saveCardChangesOnReturn)
+                return;
 
-        SortCards();
+            Settings.SaveCardChangesOnReturn = _saveCardChangesOnReturn = value;
+            SettingsViewModel.SaveSettings();
 
-        var insertedCardPath = GetInsertedCardPath();
-        if (string.IsNullOrWhiteSpace(insertedCardPath))
-            return;
+            Logger.LogInfo($"Cards will {(_saveCardChangesOnReturn ? "save" : "lose")} changes when return");
 
-        var copyInAllCardsPath = Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath));
-        if (!File.Exists(copyInAllCardsPath))
-            File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
-
-        // Когда применён фильтр, вставленная карта может не попасть в отфильтрованный список, поэтому нужен OrDefault
-        var insertedCard = Cards.SingleOrDefault(c => c.FileName == Path.GetFileName(insertedCardPath));
-        if (insertedCard != null)
-            insertedCard.IsInserted = true;
-    }
-
-    private string? GetInsertedCardPath()
-    {
-        if (string.IsNullOrWhiteSpace(InsertedCardDirectoryPath))
-            return null;
-
-        var insertedCardDirFiles = Directory.GetFiles(InsertedCardDirectoryPath, "*.bin");
-        if (insertedCardDirFiles.Length > 1)
-        {
-            Logger.LogInfo("В каталоге с приложенными картами лежит несколько карт!");
-        };
-
-        return insertedCardDirFiles.SingleOrDefault();
-    }
-
-    private void FileSystemWatcher_OnError(object sender, ErrorEventArgs args)
-    {
-        Logger.LogException(args.GetException());
-    }
-
-    private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
-    {
-        //throw new NotImplementedException();
+            OnPropertyChanged();
+        }
     }
 
     public ObservableCollection<CardViewModel> Cards
@@ -202,15 +176,105 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ICommand ChangeSortOrderCommand { get; }
     public ICommand ClearFilterCommand { get; }
 
+    private void ActualizeCurrentState()
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            if (!Directory.Exists(_allCardsDirectoryPath))
+            {
+                Cards.Clear();
+                return;
+            }
+
+            var cards = Directory.GetFiles(_allCardsDirectoryPath).Select(path => new CardViewModel {Path = path});
+            if (!string.IsNullOrWhiteSpace(_filterText))
+                cards = cards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase));
+
+            _cards = new ObservableCollection<CardViewModel>(cards.OrderBy(card => card.CardName));
+
+            Settings.PinnedCards.ForEach(pinnedCardName =>
+            {
+                var card = _cards.FirstOrDefault(c => c.CardName == pinnedCardName || c.FileName == pinnedCardName);
+                if (card != null)
+                    card.PinIndex = _cards.Count(c => c.IsPinned);
+            });
+
+            SortCards();
+
+            var insertedCardPath = GetInsertedCardPath();
+            if (string.IsNullOrWhiteSpace(insertedCardPath))
+            {
+                Logger.LogPerformance(stopwatch.Elapsed);
+                return;
+            }
+
+            var copyInAllCardsPath = Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath));
+            if (!File.Exists(copyInAllCardsPath))
+                File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
+
+            // Когда применён фильтр, вставленная карта может не попасть в отфильтрованный список, поэтому нужен OrDefault
+            var insertedCard = Cards.SingleOrDefault(c => c.FileName == Path.GetFileName(insertedCardPath));
+            if (insertedCard != null)
+                insertedCard.IsInserted = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogException(ex);
+        }
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
+        }
+    }
+
+    private string? GetInsertedCardPath()
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(InsertedCardDirectoryPath))
+                return null;
+
+            var insertedCardDirFiles = Directory.GetFiles(InsertedCardDirectoryPath, "*.bin");
+            if (insertedCardDirFiles.Length > 1)
+            {
+                Logger.LogInfo("В каталоге с приложенными картами лежит несколько карт!");
+            }
+
+            return insertedCardDirFiles.SingleOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogException(ex);
+            throw;
+        }
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
+        }
+    }
+
+    private void FileSystemWatcher_OnError(object sender, ErrorEventArgs args)
+    {
+        Logger.LogException(args.GetException());
+    }
+
+    private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
 
     private async void InsertCard(CardViewModel? card)
     {
+        var stopwatch = Stopwatch.StartNew();
         try
         {
             var currentlyInsertedCardPath = GetInsertedCardPath();
             if (currentlyInsertedCardPath != null)
             {
-                var currentlyInsertedCard = _cards.Single(c => c.FileName == Path.GetFileName(currentlyInsertedCardPath));
+                var currentlyInsertedCard =
+                    _cards.Single(c => c.FileName == Path.GetFileName(currentlyInsertedCardPath));
                 RemoveCard(currentlyInsertedCard);
                 Thread.Sleep(Settings.ReplaceCardDelayMs);
             }
@@ -231,9 +295,13 @@ public sealed class MainWindowViewModel : ViewModelBase
 
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.LogException(e);
+            Logger.LogException(ex);
+        }
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
         }
     }
 
@@ -252,6 +320,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void RemoveCard(CardViewModel? card)
     {
+        var stopwatch = Stopwatch.StartNew();
         try
         {
             ArgumentNullException.ThrowIfNull(card);
@@ -259,11 +328,18 @@ public sealed class MainWindowViewModel : ViewModelBase
             var insertedCardPath = GetInsertedCardPath();
             if (insertedCardPath != null)
             {
-                Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'.");
-
-                File.Move(insertedCardPath,
-                    Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
-                    overwrite: true);
+                if (_saveCardChangesOnReturn)
+                {
+                    Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}' (move file to all cards directory).");
+                    File.Move(insertedCardPath,
+                        Path.Combine(AllCardsDirectoryPath, Path.GetFileName(insertedCardPath)),
+                        overwrite: true);
+                }
+                else
+                {
+                    Logger.LogInfo($"Removing card: '{Path.GetFileNameWithoutExtension(insertedCardPath)}'. (delete file)");
+                    File.Delete(insertedCardPath);
+                }
 
                 var insertedCard = Cards.SingleOrDefault(c => c.IsInserted);
                 if (insertedCard != null)
@@ -273,9 +349,13 @@ public sealed class MainWindowViewModel : ViewModelBase
             Logger.LogInfo($"Card '{Path.GetFileNameWithoutExtension(insertedCardPath)}' successfully removed.");
             RemoveCardCommand.NotifyCanExecuteChanged();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Logger.LogException(e);
+            Logger.LogException(ex);
+        }
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
         }
     }
 
@@ -283,25 +363,37 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void PinCard(CardViewModel? card)
     {
-        if (card == null)
-            return;
-
-        if (card.IsPinned)
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            card.UnPin();
-            Settings.PinnedCards.Remove(card.CardName);
+            if (card == null)
+                return;
+
+            if (card.IsPinned)
+            {
+                card.UnPin();
+                Settings.PinnedCards.Remove(card.CardName);
+            }
+            else
+            {
+                var lastPinIndex = _cards.OrderBy(c => c.PinIndex).Last().PinIndex;
+                card.PinIndex = lastPinIndex + 1;
+                Settings.PinnedCards.Add(card.CardName);
+            }
+
+            Settings.PinnedCards.RemoveAll(cardName => Cards.All(c => c.CardName != cardName));
+            SettingsViewModel.SaveSettings();
+
+            SortCards();
         }
-        else
+        catch (Exception ex)
         {
-            var lastPinIndex = _cards.OrderBy(c => c.PinIndex).Last().PinIndex;
-            card.PinIndex = lastPinIndex + 1;
-            Settings.PinnedCards.Add(card.CardName);
+            Logger.LogException(ex);
         }
-
-        Settings.PinnedCards.RemoveAll(cardName => Cards.All(c => c.CardName != cardName));
-        SettingsViewModel.SaveSettings();
-
-        SortCards();
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
+        }
     }
 
     private void ChangeSortOrder()
@@ -313,13 +405,25 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private void SortCards()
     {
-        var pinnedCards = _cards.Where(c => c.IsPinned).ToList();
-        var unpinnedCards = _cards.Except(pinnedCards);
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var pinnedCards = _cards.Where(c => c.IsPinned).ToList();
+            var unpinnedCards = _cards.Except(pinnedCards);
 
-        unpinnedCards = Settings.SortAscending
-            ? unpinnedCards.OrderBy(c => c.CardName)
-            : unpinnedCards.OrderByDescending(c => c.CardName);
+            unpinnedCards = Settings.SortAscending
+                ? unpinnedCards.OrderBy(c => c.CardName)
+                : unpinnedCards.OrderByDescending(c => c.CardName);
 
-        Cards = new ObservableCollection<CardViewModel>(pinnedCards.Union(unpinnedCards));
+            Cards = new ObservableCollection<CardViewModel>(pinnedCards.Union(unpinnedCards));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogException(ex);
+        }
+        finally
+        {
+            Logger.LogPerformance(stopwatch.Elapsed);
+        }
     }
 }

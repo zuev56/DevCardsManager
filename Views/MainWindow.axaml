@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:extensions="clr-namespace:DevCardsManager"
         xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+        xmlns:converters="clr-namespace:DevCardsManager.Views.Converters"
         mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="600"
         x:Class="DevCardsManager.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -136,7 +137,6 @@
                         </BehaviorCollection>
                     </BehaviorCollectionTemplate>
                 </Setter>
-
             </Style>
 
             <Style Selector="^ Menu.top-menu-panel">
@@ -172,6 +172,18 @@
             </Style>
         </Style>
 
+        <Style Selector="ToggleButton:checked /template/ ContentPresenter">
+            <Style.Resources>
+                <SolidColorBrush x:Key="DarkThemeBackground" Color="WhiteSmoke" Opacity="0.3" />
+                <SolidColorBrush x:Key="LightThemeBackground" Color="DimGray" Opacity="0.2" />
+            </Style.Resources>
+
+            <Setter Property="Background"
+                    Value="{Binding $self.ActualThemeVariant, Converter={converters:ThemeValueConverter
+                                    DarkValue={StaticResource DarkThemeBackground},
+                                    LightValue={StaticResource LightThemeBackground}}}" />
+        </Style>
+
     </Window.Styles>
 
 
@@ -182,16 +194,24 @@
                 <Grid RowDefinitions="Auto,*" Classes="cards-list">
                     <Grid ColumnDefinitions="*, Auto">
                         <Menu Grid.Column="0" Classes="top-menu-panel">
-                            <MenuItem Command="{Binding UpdateCardsCommand}">
+                            <MenuItem Command="{Binding UpdateCardsCommand}"
+                                      extensions:ControlExtensions.ToolTipText="Обновить список карт">
                                 <MenuItem.Header>
                                     <Image Source="/Assets/update_32x32.png" />
                                 </MenuItem.Header>
                             </MenuItem>
-                            <MenuItem Command="{Binding ChangeSortOrderCommand}">
+                            <MenuItem Command="{Binding ChangeSortOrderCommand}"
+                                      extensions:ControlExtensions.ToolTipText="Поменять порядок сортировки">
                                 <MenuItem.Header>
                                     <Image Source="/Assets/sort_32x32.png" />
                                 </MenuItem.Header>
                             </MenuItem>
+                            <ToggleButton IsChecked="{Binding !SaveCardChangesOnReturn}"
+                                          extensions:ControlExtensions.ToolTipText="Возвращать карту к исходному состоянию при её извлечении">
+                                <ToggleButton.Content>
+                                    <Image Source="/Assets/eraser_32x32.png" />
+                                </ToggleButton.Content>
+                            </ToggleButton>
                         </Menu>
 
                         <Grid Grid.Column="1" Margin="0,0,0,3">
@@ -287,7 +307,7 @@
             </TabItem>
 
             <TabItem Header="Лог">
-                <TextBox Text="{Binding Logger.Log, Mode=OneWay}" IsReadOnly="True" />
+                <TextBox Text="{Binding Logger.Log, Mode=OneWay}" IsReadOnly="True" FontFamily="Courier New, Consolas, Monaco, monospace" />
             </TabItem>
         </TabControl>
 

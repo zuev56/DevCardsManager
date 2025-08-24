@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Input;
@@ -31,7 +32,7 @@ public sealed class SettingsViewModel : ViewModelBase
         foreach (var parameter in Parameters)
             parameter.PropertyChanged -= Parameter_OnChanged;
 
-        Parameters = Settings!.ToParameters();
+        Parameters = Settings.ToParameters(_logger);
         OnPropertyChanged(nameof(Parameters));
 
         foreach (var parameter in Parameters)
@@ -40,6 +41,15 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void Parameter_OnChanged(object? sender, PropertyChangedEventArgs e)
     {
+        var newValue = sender switch
+        {
+            StringParameterViewModel stringParameter => stringParameter.Value,
+            IntegerParameterViewModel integerParameter => integerParameter.Value.ToString(),
+            BooleanParameterViewModel booleanParameter => booleanParameter.Value.ToString(),
+            _ => throw new ArgumentOutOfRangeException(nameof(sender), "Unknown parameter type!")
+        };
+        _logger.LogInfo($"Update parameter: '{e.PropertyName}', new value: '{newValue}'");
+
         Settings = Parameters.ToSettings(Settings.PinnedCards);
 
         SaveSettings();
@@ -49,6 +59,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
         if (e.PropertyName == nameof(Settings.SortAscending))
             ActualizeTheme();
+
+        OnPropertyChanged(nameof(Settings));
     }
 
     public Settings Settings { get; private set; } = null!;
@@ -67,6 +79,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
     internal void SaveSettings()
     {
+        var stopwatch = Stopwatch.StartNew();
         try
         {
             var settingsContent = JsonSerializer.Serialize(Settings, new JsonSerializerOptions
@@ -75,10 +88,16 @@ public sealed class SettingsViewModel : ViewModelBase
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
             File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), AppsettingsFileName), settingsContent);
+
+            OnPropertyChanged(nameof(Settings));
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogException(e);
+            _logger.LogException(ex);
+        }
+        finally
+        {
+            _logger.LogPerformance(stopwatch.Elapsed);
         }
     }
 

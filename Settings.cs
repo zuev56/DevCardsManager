@@ -24,9 +24,18 @@ public sealed class Settings
     [DisplayName("Тёмная тема")]
     public bool UseDarkTheme { get; set; } = true;
 
+    [DisplayName("Сохранять изменения на карте при её возврате")]
+    public bool SaveCardChangesOnReturn { get; set; } = true;
+
+    [DisplayName("Детальное логирование")]
+    public bool DetailedLogging { get; set; }
+
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];
 }
 
+/// <summary>
+/// Свойства, помеченные этим атрибутом не будут выводиться в окне настроек
+/// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class IgnoreAttribute : Attribute;
