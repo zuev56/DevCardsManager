@@ -207,7 +207,7 @@
                                 </MenuItem.Header>
                             </MenuItem>
                             <ToggleButton IsChecked="{Binding !SaveCardChangesOnReturn}"
-                                          extensions:ControlExtensions.ToolTipText="Возвращать карту к исходному состоянию при её извлечении">
+                                          extensions:ControlExtensions.ToolTipText="Возвращать карту к исходному состоянию после использования">
                                 <ToggleButton.Content>
                                     <Image Source="/Assets/eraser_32x32.png" />
                                 </ToggleButton.Content>
