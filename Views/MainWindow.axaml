@@ -307,7 +307,7 @@
             </TabItem>
 
             <TabItem Header="Лог">
-                <TextBox Text="{Binding Logger.Log, Mode=OneWay}" IsReadOnly="True" />
+                <TextBox Text="{Binding Logger.Log, Mode=OneWay}" IsReadOnly="True" FontFamily="Courier New, Consolas, Monaco, monospace" />
             </TabItem>
         </TabControl>
 

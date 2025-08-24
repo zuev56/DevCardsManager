@@ -34,6 +34,7 @@ internal static class Mapper
 
     public static Settings ToSettings(this IList<ParameterViewModel> parameters, List<string> pinnedCards)
     {
+        // TODO: надо сделать так, чтобы не приходилось прописывать каждое новое свойство
         var settings = new Settings
         {
             AllCardsPath = ((StringParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.AllCardsPath))).Value,
@@ -42,6 +43,8 @@ internal static class Mapper
             InsertCardOnTimeMs = ((IntegerParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.InsertCardOnTimeMs))).Value,
             SortAscending = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SortAscending))).Value,
             UseDarkTheme = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.UseDarkTheme))).Value,
+            SaveCardChangesOnReturn = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SaveCardChangesOnReturn))).Value,
+            DetailedLogging = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.DetailedLogging))).Value,
             PinnedCards = pinnedCards
         };
 

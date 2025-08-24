@@ -8,7 +8,7 @@ using DevCardsManager.Views;
 
 namespace DevCardsManager;
 
-public partial class App : Application
+public sealed partial class App : Application
 {
     public override void Initialize()
     {

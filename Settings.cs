@@ -24,8 +24,11 @@ public sealed class Settings
     [DisplayName("Тёмная тема")]
     public bool UseDarkTheme { get; set; } = true;
 
-    [Ignore]
+    [DisplayName("Сохранять изменения на карте при её возврате")]
     public bool SaveCardChangesOnReturn { get; set; } = true;
+
+    [DisplayName("Детальное логирование")]
+    public bool DetailedLogging { get; set; } = true;
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];
