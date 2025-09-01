@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Extensions;
 
 public static class StringExtensions
 {
@@ -13,4 +13,24 @@ public static class StringExtensions
     /// </remarks>
     internal static string ToOsSpecificDirectorySeparatorChar(this string path)
         => path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+    public static bool IsValidDirectoryPath(this string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+                return false;
+
+            var fullPath = Path.GetFullPath(path);
+
+            return !string.IsNullOrEmpty(Path.GetDirectoryName(fullPath));
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

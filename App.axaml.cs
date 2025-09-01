@@ -1,46 +1,37 @@
-using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using DevCardsManager.ViewModels;
 using DevCardsManager.Views;
+using Prism.DryIoc;
+using Prism.Ioc;
 
 namespace DevCardsManager;
 
-public sealed partial class App : Application
+public sealed partial class App : PrismApplication
 {
     public override void Initialize()
     {
+        // TODO: Есть сомнения в необходимости AvaloniaXamlLoader.Load после перехода на Prism, ведь теперь есть base.Initialize();
         AvaloniaXamlLoader.Load(this);
+        base.Initialize();
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
+        // throw new System.NotImplementedException();
+    }
+
+    protected override AvaloniaObject CreateShell() => Container.Resolve<MainWindow>();
+
+    protected override void OnInitialized()
+    {
+        // Инициализация после создания Shell
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(),
-            };
+            desktop.MainWindow = (Window)MainWindow;
         }
 
-        base.OnFrameworkInitializationCompleted();
-    }
-
-    private void DisableAvaloniaDataAnnotationValidation()
-    {
-        // Get an array of plugins to remove
-        var dataValidationPluginsToRemove =
-            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-        // remove each entry found
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
+        base.OnInitialized();
     }
 }

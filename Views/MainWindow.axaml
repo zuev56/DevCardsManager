@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:extensions="clr-namespace:DevCardsManager"
         xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
         xmlns:converters="clr-namespace:DevCardsManager.Views.Converters"
+        xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
         mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="600"
         x:Class="DevCardsManager.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -191,7 +191,7 @@
         <TabControl Margin="0,0,0,10" SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
 
             <TabItem Header="Карты">
-                <Grid RowDefinitions="Auto,*" Classes="cards-list">
+                <Grid RowDefinitions="Auto,*" Classes="cards-list" DataContext="{Binding CardManagerViewModel}">
                     <Grid ColumnDefinitions="*, Auto">
                         <Menu Grid.Column="0" Classes="top-menu-panel">
                             <MenuItem Command="{Binding UpdateCardsCommand}"
@@ -224,34 +224,34 @@
                     </Grid>
 
                     <ListBox Grid.Row="1" x:Name="CardsListBox"
-                             ItemsSource="{Binding Cards}">
+                             ItemsSource="{Binding FilteredCards}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Spacing="3" >
                                         <Image Source="/Assets/card_32x23.png" />
                                         <Button Classes="insert"
-                                                Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardCommand}"
+                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardCommand}"
                                                 CommandParameter="{Binding}"
                                                 extensions:ControlExtensions.ToolTipText="Приложить карту">
                                             <ToolTip.Tip>
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту'}"
+                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту'}"
                                                                IsVisible="{Binding !IsInserted}" />
-                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Убрать и снова приложить карту'}"
+                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Убрать и снова приложить карту'}"
                                                                IsVisible="{Binding IsInserted}" />
                                                 </StackPanel>
                                             </ToolTip.Tip>
                                         </Button>
                                         <Button Classes="insert-on-time"
-                                                Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeCommand}"
+                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeCommand}"
                                                 CommandParameter="{Binding}">
                                             <ToolTip.Tip>
-                                                <TextBlock Text="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту на {0} секунд, затем убрать'}" />
+                                                <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту на {0} секунд, затем убрать'}" />
                                             </ToolTip.Tip>
                                         </Button>
                                         <Button Classes="remove"
-                                                Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).RemoveCardCommand}"
+                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).RemoveCardCommand}"
                                                 CommandParameter="{Binding}"
                                                 extensions:ControlExtensions.ToolTipText="Убрать карту"/>
 
@@ -259,7 +259,7 @@
                                     </StackPanel>
 
                                     <Button Classes="pin"
-                                            Command="{Binding $parent[ListBox].((vm:MainWindowViewModel)DataContext).PinCardCommand}"
+                                            Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).PinCardCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>
 
@@ -270,8 +270,7 @@
             </TabItem>
 
             <TabItem Header="Настройки">
-                <Grid Classes="parameters-list" Margin="0,20,0,0"
-                      DataContext="{Binding SettingsViewModel}">
+                <Grid Classes="parameters-list" Margin="0,20,0,0" DataContext="{Binding SettingsViewModel}">
 
                     <ItemsControl Grid.Row="0" x:Name="Parameters"
                                   ItemsSource="{Binding Parameters}">

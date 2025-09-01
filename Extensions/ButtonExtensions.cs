@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Extensions;
 
 public static class ControlExtensions
 {

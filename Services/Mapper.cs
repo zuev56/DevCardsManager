@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using DevCardsManager.Models;
 using DevCardsManager.ViewModels;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Services;
 
 internal static class Mapper
 {
@@ -53,4 +54,25 @@ internal static class Mapper
 
         return settings;
     }
+
+    public static CardViewModel ToCardViewModel(this Card card)
+    {
+        var cardVm = new CardViewModel
+        {
+            Path = card.Path,
+            IsInserted = card.IsInserted,
+        };
+
+        cardVm.Pin(card.PinIndex);
+
+        return cardVm;
+    }
+
+    public static Card ToCard(this CardViewModel viewModel)
+        => new()
+        {
+            Path = viewModel.Path,
+            IsInserted = viewModel.IsInserted,
+            PinIndex = viewModel.PinIndex == -1 ? null : viewModel.PinIndex,
+        };
 }

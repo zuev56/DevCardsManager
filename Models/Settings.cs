@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Models;
 
 public sealed class Settings
 {
+    public const string FileName = "appsettings.json";
+
     [DisplayName("Каталог со всеми картами")]
     public required string AllCardsPath { get; set; }
 
@@ -29,6 +31,9 @@ public sealed class Settings
 
     [DisplayName("Детальное логирование")]
     public bool DetailedLogging { get; set; }
+
+    // [DisplayName("Включить возможность прикладывания карты на время")]
+    // public bool AllowTemporarilyAttach { get; set; }
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];

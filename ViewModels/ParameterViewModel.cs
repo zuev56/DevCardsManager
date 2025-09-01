@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ReactiveUI;
 
 namespace DevCardsManager.ViewModels;
 
@@ -23,7 +24,7 @@ public abstract class ParameterViewModel<TValue>(string propertyName, string dis
                 return;
 
             _value = value;
-            OnPropertyChanged(PropertyName);
+            this.RaisePropertyChanged(PropertyName);
         }
     }
 }
