@@ -9,17 +9,18 @@ public sealed class MainWindowViewModel : ViewModelBase
     private readonly DirectoryWatcher _directoryWatcher;
     private readonly SettingsManager _settingsManager;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(DirectoryWatcher directoryWatcher, SettingsManager settingsManager,
+        CardManager cardManager, Logger logger, SettingsViewModel settingsViewModel,
+        CardManagerViewModel cardManagerViewModel)
     {
+        _directoryWatcher = directoryWatcher;
+        _settingsManager = settingsManager;
+        CardManager = cardManager;
+        Logger = logger;
+        SettingsViewModel = settingsViewModel;
+        CardManagerViewModel = cardManagerViewModel;
         try
         {
-            Logger = new Logger();
-            _settingsManager = new SettingsManager(Logger);
-            CardManager = new CardManager(_settingsManager, Logger);
-            SettingsViewModel = new SettingsViewModel(_settingsManager, Logger);
-            CardManagerViewModel = new CardManagerViewModel(CardManager, _settingsManager, Logger);
-            _directoryWatcher = new DirectoryWatcher(Logger);
-
             _directoryWatcher.DirectoryChanged += path =>
             {
                 if (path == Settings.AllCardsPath)

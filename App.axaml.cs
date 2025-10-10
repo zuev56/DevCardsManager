@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using DevCardsManager.Services;
+using DevCardsManager.ViewModels;
 using DevCardsManager.Views;
 using Prism.DryIoc;
 using Prism.Ioc;
@@ -19,7 +21,12 @@ public sealed partial class App : PrismApplication
 
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
-        // throw new System.NotImplementedException();
+        var container = (IContainerExtension)Container;
+        container.RegisterSingleton<Logger>();
+        container.RegisterSingleton<SettingsManager>();
+        container.RegisterSingleton<CardManager>();
+        container.RegisterSingleton<DirectoryWatcher>();
+
     }
 
     protected override AvaloniaObject CreateShell() => Container.Resolve<MainWindow>();

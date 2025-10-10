@@ -231,7 +231,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="3" >
                                         <Image Source="/Assets/card_32x23.png" />
                                         <Button Classes="insert"
-                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardCommand}"
+                                                Command="{Binding InsertCommand}"
                                                 CommandParameter="{Binding}"
                                                 extensions:ControlExtensions.ToolTipText="Приложить карту">
                                             <ToolTip.Tip>
