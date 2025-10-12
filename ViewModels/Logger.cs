@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading;
+using System.Text;
 using ReactiveUI;
 
 namespace DevCardsManager.ViewModels;
@@ -18,7 +18,7 @@ public sealed class Logger : ViewModelBase
     }
 
     private string _log = string.Empty;
-    private static readonly Lock Locker = new();
+    private static readonly object FileLocker = new();
 
     public bool DetailedLogging { get; set; }
 
@@ -64,26 +64,43 @@ public sealed class Logger : ViewModelBase
         if (logLevel == LogLevel.Trace && !DetailedLogging)
             return;
 
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {logLevel}: {message}";
+        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {logLevel} ({Environment.CurrentManagedThreadId}): {message}";
         Console.WriteLine(text);
-
-        Log += string.IsNullOrWhiteSpace(Log)
-            ? text
-            : $"{Environment.NewLine}{text}";
 
         try
         {
-            lock (Locker)
+            lock (FileLocker)
             {
-                // File.AppendAllLines("log.txt", [text]);
-                //File.AppendAllText("log.txt", text + Environment.NewLine, Encoding.UTF8);
+                Log += string.IsNullOrWhiteSpace(Log)
+                    ? text
+                    : $"{Environment.NewLine}{text}";
+
+                WriteToFile(text);
             }
         }
         catch (Exception e)
         {
-            Log += $"{e.GetType().Name}: {e.Message}{Environment.NewLine}{e.StackTrace}";
             Console.WriteLine(e);
+            Log += $"{e.GetType().Name}: {e.Message}{Environment.NewLine}{e.StackTrace}";
             throw;
+        }
+    }
+
+    private static void WriteToFile(string text, int counter = 0)
+    {
+        try
+        {
+            File.AppendAllText("log.txt", text + Environment.NewLine, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            if (counter++ < 3)
+            {
+                var exceptionInfo = $"{ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
+                WriteToFile($"{exceptionInfo}{Environment.NewLine}{text}", counter);
+            }
+            else
+                throw;
         }
     }
 }

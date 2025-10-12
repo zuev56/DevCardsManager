@@ -26,6 +26,9 @@ public sealed class Settings
     [DisplayName("Тёмная тема")]
     public bool UseDarkTheme { get; set; } = true;
 
+    [DisplayName("Отображать поверх остальных окон")]
+    public bool KeepOnTop { get; set; }
+
     [DisplayName("Сохранять изменения на карте после её использования")]
     public bool SaveCardChangesOnReturn { get; set; } = true;
 

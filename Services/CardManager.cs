@@ -13,7 +13,7 @@ namespace DevCardsManager.Services;
 
 public sealed class CardManager
 {
-    private int _insertionInProgress = 0;
+    private int _insertionInProgress;
     private int _removeCardOnTimeoutTaskId = -1;
 
     private readonly SettingsManager _settingsManager;
@@ -21,23 +21,16 @@ public sealed class CardManager
 
     public CardManager(SettingsManager settingsManager, Logger logger)
     {
-        try
-        {
-            _settingsManager = settingsManager;
-            _logger = logger;
+        _settingsManager = settingsManager;
+        _logger = logger;
 
-            ActualizeCardList();
-        }
-        catch (Exception e)
-        {
-            logger.LogException(e);
-        }
+        ActualizeCardList();
     }
 
-    public List<Card> Cards { get; private set; }
+    public List<Card> Cards { get; } = [];
     private Settings Settings => _settingsManager.Settings;
-    public Func<string, Task> AddToClipboardAsync { get; set; }
-    public Func<Task<string?>> ReadClipboardAsync { get; set; }
+    public Func<string, Task> AddToClipboardAsync { get; set; } = null!;
+    public Func<Task<string?>> ReadClipboardAsync { get; set; } = null!;
 
     public delegate void CardStateUpdatedEvent(Card card, string updatedProperty);
     public event CardStateUpdatedEvent? CardStateUpdated;
@@ -48,11 +41,9 @@ public sealed class CardManager
         try
         {
             if (!Directory.Exists(Settings.AllCardsPath))
-            {
                 return;
-            }
 
-            Cards = Directory.GetFiles(Settings.AllCardsPath)
+            var actualCards = Directory.GetFiles(Settings.AllCardsPath)
                 .Select(path =>
                 {
                     var pinIndex = Settings.PinnedCards.IndexOf(Path.GetFileNameWithoutExtension(path));
@@ -60,16 +51,19 @@ public sealed class CardManager
                 })
                 .ToList();
 
+            Cards.RemoveAll(c => actualCards.All(ac => ac.Path != c.Path));
+            Cards.AddRange(actualCards.Where(ac => Cards.All(c => c.Path != ac.Path)));
+
             var insertedCardPath = GetInsertedCardPath();
             if (string.IsNullOrWhiteSpace(insertedCardPath))
-            {
-                _logger.LogPerformance(stopwatch.Elapsed);
                 return;
-            }
 
             CopyInsertedCardToAllCardsDirIfNotExists();
 
-            Cards.Single(c => GetFileName(c.Path) == GetFileName(insertedCardPath)).IsInserted = true;
+            var insertedCard = Cards.Single(c => GetFileName(c.Path) == GetFileName(insertedCardPath));
+            insertedCard.IsInserted = true;
+
+            CardStateUpdated?.Invoke(insertedCard, nameof(Card.IsInserted));
         }
         catch (Exception ex)
         {
@@ -84,6 +78,9 @@ public sealed class CardManager
     public void CopyInsertedCardToAllCardsDirIfNotExists()
     {
         var insertedCardPath = GetInsertedCardPath();
+        if (insertedCardPath == null)
+            return;
+
         var copyInAllCardsPath = Path.Combine(Settings.AllCardsPath, Path.GetFileName(insertedCardPath));
         if (!File.Exists(copyInAllCardsPath))
             File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
@@ -99,9 +96,7 @@ public sealed class CardManager
 
             var insertedCardDirFiles = Directory.GetFiles(Settings.InsertedCardPath, "*.bin");
             if (insertedCardDirFiles.Length > 1)
-            {
                 _logger.LogInfo("В каталоге с приложенными картами лежит несколько карт!");
-            }
 
             return insertedCardDirFiles.SingleOrDefault();
         }
@@ -119,7 +114,7 @@ public sealed class CardManager
     /// <summary>
     /// Вставить карту
     /// </summary>
-    public Task InsertCardAsync(Card? card, bool removeOnTimeout = false)
+    public Task InsertCardAsync(Card card, bool removeOnTimeout = false)
     {
         if (!SetInsertionInProgress())
         {
@@ -191,7 +186,6 @@ public sealed class CardManager
 
                 _logger.LogInfo($"Wait for {TimeSpan.FromMilliseconds(Settings.InsertCardOnTimeMs).TotalSeconds} seconds.");
 
-
                 var removeCardTask = new Task(() =>
                 {
                     if (card!.IsInserted)
@@ -219,7 +213,7 @@ public sealed class CardManager
     /// <summary>
     /// Урать карту - удалить или переместить в каталог со всеми картами.
     /// </summary>
-    public void RemoveCard(Card? card)
+    public void RemoveCard(Card card)
     {
         var stopwatch = Stopwatch.StartNew();
         try
@@ -231,14 +225,14 @@ public sealed class CardManager
             {
                 if (Settings.SaveCardChangesOnReturn)
                 {
-                    _logger.LogInfo($"Removing card: '{GetFileName(insertedCardPath)}' (move back to all cards directory).");
+                    _logger.LogInfo($"Removing card: '{GetFileName(insertedCardPath)}' (move back to the all cards directory).");
                     File.Move(insertedCardPath,
                         Path.Combine(Settings.AllCardsPath, Path.GetFileName(insertedCardPath)),
                         overwrite: true);
                 }
                 else
                 {
-                    _logger.LogInfo($"Removing card: '{GetFileName(insertedCardPath)}'. (delete file)");
+                    _logger.LogInfo($"Removing card: '{GetFileName(insertedCardPath)}'. (delete the file)");
                     File.Delete(insertedCardPath);
                 }
 
@@ -265,14 +259,11 @@ public sealed class CardManager
     /// <summary>
     /// Закрепить карту вверху списка.
     /// </summary>
-    public void PinCard(Card? card)
+    public void PinCard(Card card)
     {
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            if (card == null)
-                return;
-
             if (card.PinIndex.HasValue)
             {
                 card.UnPin();

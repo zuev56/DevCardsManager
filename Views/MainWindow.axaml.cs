@@ -24,7 +24,6 @@ public sealed partial class MainWindow : Window
         ForceLayoutRecalculation();
     }
 
-
     /// <summary>
     /// Принудительная перерисовка всех элементов.
     /// </summary>

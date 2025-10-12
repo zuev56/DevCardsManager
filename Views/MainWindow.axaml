@@ -4,13 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
         xmlns:converters="clr-namespace:DevCardsManager.Views.Converters"
-        xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
+        xmlns:controls="clr-namespace:DevCardsManager.Controls"
         mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="600"
         x:Class="DevCardsManager.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="420" Height="600"
         Icon="/Assets/logo.ico"
-        Title="CardsManager">
+        Title="CardsManager"
+        Topmost="{Binding CardManagerViewModel.KeepOnTop}">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -19,143 +20,6 @@
     </Design.DataContext>
 
     <Window.Styles>
-
-        <Style Selector=":is(Panel).cards-list">
-            <Style Selector="^ :is(Button)">
-                <Setter Property="Height" Value="30" />
-                <Setter Property="Width" Value="30" />
-                <Setter Property="Padding" Value="3" />
-                <Setter Property="Background" Value="Transparent" />
-
-                <Style Selector="^:pressed ContentPresenter">
-                    <Setter Property="Background" Value="Transparent" />
-                </Style>
-                <Style Selector="^:disabled ContentPresenter">
-                    <Setter Property="Opacity" Value="0.3" />
-                    <Setter Property="Background" Value="Transparent" />
-                </Style>
-            </Style>
-
-            <Style Selector="^ Button.insert">
-                <Setter Property="ContentTemplate">
-                    <DataTemplate>
-                        <Image Source="/Assets/insert_32x32.png" Stretch="Fill" />
-                    </DataTemplate>
-                </Setter>
-            </Style>
-
-            <Style Selector="^ Button.insert-on-time">
-                <Setter Property="ContentTemplate">
-                    <DataTemplate>
-                        <Image Source="/Assets/insert_on_time_32x32.png" Stretch="Fill" />
-                    </DataTemplate>
-                </Setter>
-            </Style>
-
-            <Style Selector="^ Button.remove">
-                <Setter Property="ContentTemplate">
-                    <DataTemplate>
-                        <Image Source="/Assets/remove_32x32.png" Stretch="Fill" />
-                    </DataTemplate>
-                </Setter>
-            </Style>
-
-            <Style Selector="^ Button.pin">
-                <Setter  Property="HorizontalAlignment" Value="Right" />
-                <Setter  Property="Margin" Value="10,0" />
-
-                <Setter Property="ContentTemplate">
-                    <DataTemplate>
-                        <Image Name="ThumbtackImage" Source="/Assets/thumbtack_32x32.png" Width="18" />
-                    </DataTemplate>
-                </Setter>
-
-                <Setter Property="ToolTip.Tip">
-                    <Template>
-                        <StackPanel>
-                            <TextBlock Text="Закрепить" IsVisible="{Binding !$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned}" />
-                            <TextBlock Text="Открепить" IsVisible="{Binding $parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned}" />
-                        </StackPanel>
-                    </Template>
-                </Setter>
-
-                <Setter Property="Interaction.Behaviors">
-                    <BehaviorCollectionTemplate>
-                        <BehaviorCollection>
-                            <!-- Кнопка видна, когда мышь над карточкой или когда карточка закреплена -->
-                            <DataTriggerBehavior Value="True">
-                                <DataTriggerBehavior.Binding>
-                                    <MultiBinding Converter="{x:Static BoolConverters.Or}" >
-                                        <Binding Path="$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
-                                        <Binding Path="$parent[ListBoxItem].IsPointerOver" />
-                                    </MultiBinding>
-                                </DataTriggerBehavior.Binding>
-                                <ChangePropertyAction PropertyName="IsVisible" Value="True" />
-                            </DataTriggerBehavior>
-
-                            <!-- Кнопка полупрозрачная, когда мышь над карточкой, но карточка не закреплена -->
-                            <!-- Светлая тема -->
-                            <DataTriggerBehavior Value="True">
-                                <DataTriggerBehavior.Binding>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}" >
-                                        <Binding Path="$parent[ListBoxItem].ActualThemeVariant" Converter="{StaticResource EqualsConverter}" ConverterParameter="{x:Static ThemeVariant.Light}" />
-                                        <Binding Path="!$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
-                                        <Binding Path="$parent[ListBoxItem].IsPointerOver" />
-                                    </MultiBinding>
-                                </DataTriggerBehavior.Binding>
-                                <ChangePropertyAction PropertyName="Background" Value="White" />
-                                <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
-                                <ChangePropertyAction PropertyName="BorderBrush" Value="White" />
-                                <!-- ТУТ ОШИБКИ ПРИ БИНДИНГЕ -->
-                                <!-- <ChangePropertyAction PropertyName="BorderThickness" Value="1" /> -->
-                            </DataTriggerBehavior>
-                            <!-- Тёмная тема -->
-                            <DataTriggerBehavior Value="True">
-                                <DataTriggerBehavior.Binding>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}" >
-                                        <Binding Path="$parent[ListBoxItem].ActualThemeVariant" Converter="{StaticResource EqualsConverter}" ConverterParameter="{x:Static ThemeVariant.Dark}" />
-                                        <Binding Path="!$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
-                                        <Binding Path="$parent[ListBoxItem].IsPointerOver" />
-                                    </MultiBinding>
-                                </DataTriggerBehavior.Binding>
-                                <ChangePropertyAction PropertyName="Opacity" Value="0.5" />
-                                <ChangePropertyAction PropertyName="Background" Value="Transparent" />
-                                <!-- ТУТ ОШИБКИ ПРИ БИНДИНГЕ -->
-                                <!-- <ChangePropertyAction PropertyName="BorderThickness" Value="0,0,0,0" /> -->
-                            </DataTriggerBehavior>
-
-                            <!-- Кнопка скрыта, если мышь не над карточкой и карточка не закреплена -->
-                            <DataTriggerBehavior Value="true">
-                                <DataTriggerBehavior.Binding>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}" >
-                                        <Binding Path="!$parent[ListBoxItem].((vm:CardViewModel)DataContext).IsPinned" />
-                                        <Binding Path="!$parent[ListBoxItem].IsPointerOver" />
-                                    </MultiBinding>
-                                </DataTriggerBehavior.Binding>
-                                <ChangePropertyAction PropertyName="IsVisible" Value="False" />
-                            </DataTriggerBehavior>
-                        </BehaviorCollection>
-                    </BehaviorCollectionTemplate>
-                </Setter>
-            </Style>
-
-            <Style Selector="^ Menu.top-menu-panel">
-                <Style Selector="^ MenuItem">
-                    <Setter Property="Width" Value="40" />
-                    <Setter Property="Padding" Value="5" />
-                </Style>
-            </Style>
-        </Style>
-
-        <Style Selector="Button.clear-filter">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="ContentTemplate">
-                <DataTemplate>
-                    <Image Source="/Assets/clear_filter_32x32.png" Stretch="Uniform" Height="18" />
-                </DataTemplate>
-            </Setter>
-        </Style>
-
 
         <Style Selector=":is(Panel).parameters-list">
             <Style Selector="^ :is(TextBlock)">
@@ -191,81 +55,7 @@
         <TabControl Margin="0,0,0,10" SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
 
             <TabItem Header="Карты">
-                <Grid RowDefinitions="Auto,*" Classes="cards-list" DataContext="{Binding CardManagerViewModel}">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <Menu Grid.Column="0" Classes="top-menu-panel">
-                            <MenuItem Command="{Binding UpdateCardsCommand}"
-                                      extensions:ControlExtensions.ToolTipText="Обновить список карт">
-                                <MenuItem.Header>
-                                    <Image Source="/Assets/update_32x32.png" />
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <MenuItem Command="{Binding ChangeSortOrderCommand}"
-                                      extensions:ControlExtensions.ToolTipText="Поменять порядок сортировки">
-                                <MenuItem.Header>
-                                    <Image Source="/Assets/sort_32x32.png" />
-                                </MenuItem.Header>
-                            </MenuItem>
-                            <ToggleButton IsChecked="{Binding !SaveCardChangesOnReturn}"
-                                          extensions:ControlExtensions.ToolTipText="Возвращать карту к исходному состоянию после использования">
-                                <ToggleButton.Content>
-                                    <Image Source="/Assets/eraser_32x32.png" />
-                                </ToggleButton.Content>
-                            </ToggleButton>
-                        </Menu>
-
-                        <Grid Grid.Column="1" Margin="0,0,0,3">
-                            <TextBox Width="200" Watermark="Фильтр"
-                                     Text="{Binding FilterText}" />
-                            <Button Classes="clear-filter" Command="{Binding ClearFilterCommand}"
-                                    HorizontalAlignment="Right"
-                                    IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                        </Grid>
-                    </Grid>
-
-                    <ListBox Grid.Row="1" x:Name="CardsListBox"
-                             ItemsSource="{Binding FilteredCards}" >
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <StackPanel Orientation="Horizontal" Spacing="3" >
-                                        <Image Source="/Assets/card_32x23.png" />
-                                        <Button Classes="insert"
-                                                Command="{Binding InsertCommand}"
-                                                CommandParameter="{Binding}"
-                                                extensions:ControlExtensions.ToolTipText="Приложить карту">
-                                            <ToolTip.Tip>
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту'}"
-                                                               IsVisible="{Binding !IsInserted}" />
-                                                    <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Убрать и снова приложить карту'}"
-                                                               IsVisible="{Binding IsInserted}" />
-                                                </StackPanel>
-                                            </ToolTip.Tip>
-                                        </Button>
-                                        <Button Classes="insert-on-time"
-                                                Command="{Binding InsertOnTimeCommand}"
-                                                CommandParameter="{Binding}">
-                                            <ToolTip.Tip>
-                                                <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту на {0} секунд, затем убрать'}" />
-                                            </ToolTip.Tip>
-                                        </Button>
-                                        <Button Classes="remove"
-                                                Command="{Binding RemoveCommand}"
-                                                CommandParameter="{Binding}"
-                                                extensions:ControlExtensions.ToolTipText="Убрать карту"/>
-
-                                        <TextBlock Text="{Binding CardName}" VerticalAlignment="Center" />
-                                    </StackPanel>
-
-                                    <Button Classes="pin"
-                                            Command="{Binding PinCommand}"
-                                            CommandParameter="{Binding}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
+                <controls:CardManager DataContext="{Binding CardManagerViewModel}" />
             </TabItem>
 
             <TabItem Header="Настройки">

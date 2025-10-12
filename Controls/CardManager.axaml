@@ -1,0 +1,96 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
+             xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+             xmlns:controls="clr-namespace:DevCardsManager.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DevCardsManager.Controls.CardManager"
+             x:DataType="vm:CardManagerViewModel">
+
+    <UserControl.Styles>
+
+        <Style Selector=":is(Panel).cards-list">
+            <Style Selector="^ :is(Button)">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="Background" Value="Transparent" />
+
+                <Style Selector="^:pressed ContentPresenter">
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+                <Style Selector="^:disabled ContentPresenter">
+                    <Setter Property="Opacity" Value="0.3" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+            </Style>
+
+            <Style Selector="^ Menu.top-menu-panel">
+                <Style Selector="^ MenuItem">
+                    <Setter Property="Width" Value="40" />
+                    <Setter Property="Padding" Value="5" />
+                </Style>
+            </Style>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*" Classes="cards-list">
+        <Grid ColumnDefinitions="*, Auto">
+            <Menu Grid.Column="0" Classes="top-menu-panel">
+                <MenuItem Command="{Binding UpdateCardsCommand}"
+                          extensions:ControlExtensions.ToolTipText="Обновить список карт">
+                    <MenuItem.Header>
+                        <Image Source="/Assets/update_32x32.png" />
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem Command="{Binding ChangeSortOrderCommand}"
+                          extensions:ControlExtensions.ToolTipText="Поменять порядок сортировки">
+                    <MenuItem.Header>
+                        <Image Source="/Assets/sort_32x32.png" />
+                    </MenuItem.Header>
+                </MenuItem>
+                <ToggleButton IsChecked="{Binding KeepOnTop}"
+                              extensions:ControlExtensions.ToolTipText="Отображать поверх остальных окон">
+                    <Image Source="/Assets/keep_on_top.png" />
+                </ToggleButton>
+                <ToggleButton IsChecked="{Binding !SaveCardChangesOnReturn}"
+                              extensions:ControlExtensions.ToolTipText="Возвращать карту к исходному состоянию после использования">
+                    <Image Source="/Assets/eraser_32x32.png" />
+                </ToggleButton>
+                <!-- TODO -->
+                <!-- <Button Command="{Binding SelectedCard.RemoveCommand}" -->
+                <!--         CommandParameter="{Binding SelectedCard}"> -->
+                <!--     <Image Source="/Assets/remove_32x32.png" Stretch="Fill" /> -->
+                <!--     <ToolTip.Tip> -->
+                <!--         <TextBlock Text="{Binding SelectedCard.CardName, StringFormat='Убрать карту {0}', FallbackValue='Binding error'}" /> -->
+                <!--     </ToolTip.Tip> -->
+                <!-- </Button> -->
+            </Menu>
+
+            <Grid Grid.Column="1" Margin="0,0,0,3">
+                <TextBox Width="200" Watermark="Фильтр"
+                         Text="{Binding FilterText}" />
+                <Button Command="{Binding ClearFilterCommand}"
+                        IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        HorizontalAlignment="Right" Background="Transparent" >
+                    <Image Source="/Assets/clear_filter_32x32.png" Stretch="Uniform" Height="18" />
+                </Button>
+            </Grid>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" AllowAutoHide="False">
+            <ItemsRepeater x:Name="CardList"
+                           ItemsSource="{Binding FilteredCards}"
+                           extensions:ItemsRepeaterSelection.SelectedItem="{Binding SelectedCard}">
+
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <controls:CardControl/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

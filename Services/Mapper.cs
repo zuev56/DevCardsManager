@@ -47,6 +47,7 @@ internal static class Mapper
             InsertCardOnTimeMs = ((IntegerParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.InsertCardOnTimeMs))).Value,
             SortAscending = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SortAscending))).Value,
             UseDarkTheme = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.UseDarkTheme))).Value,
+            KeepOnTop = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.KeepOnTop))).Value,
             SaveCardChangesOnReturn = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SaveCardChangesOnReturn))).Value,
             DetailedLogging = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.DetailedLogging))).Value,
             PinnedCards = pinnedCards
