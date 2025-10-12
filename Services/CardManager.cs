@@ -39,6 +39,9 @@ public sealed class CardManager
     public Func<string, Task> AddToClipboardAsync { get; set; }
     public Func<Task<string?>> ReadClipboardAsync { get; set; }
 
+    public delegate void CardStateUpdatedEvent(Card card, string updatedProperty);
+    public event CardStateUpdatedEvent? CardStateUpdated;
+
     public void ActualizeCardList()
     {
         var stopwatch = Stopwatch.StartNew();
@@ -49,7 +52,13 @@ public sealed class CardManager
                 return;
             }
 
-            Cards = Directory.GetFiles(Settings.AllCardsPath).Select(path => new Card {Path = path}).ToList();
+            Cards = Directory.GetFiles(Settings.AllCardsPath)
+                .Select(path =>
+                {
+                    var pinIndex = Settings.PinnedCards.IndexOf(Path.GetFileNameWithoutExtension(path));
+                    return new Card {Path = path, PinIndex = pinIndex == -1 ? null : pinIndex };
+                })
+                .ToList();
 
             var insertedCardPath = GetInsertedCardPath();
             if (string.IsNullOrWhiteSpace(insertedCardPath))
@@ -158,10 +167,12 @@ public sealed class CardManager
                     card.IsInserted = true;
                     _logger.LogInfo($"Card '{cardName}' inserted!");
 
-                    await AddToClipboardAsync(cardName);
+                    CardStateUpdated?.Invoke(card, nameof(Card.IsInserted));
 
-                    var checkClipboardText = await ReadClipboardAsync();
-                    _logger.LogInfo($"Clipboard: '{checkClipboardText}'");
+                    AddToClipboardAsync(cardName)
+                        .ContinueWith(_ => ReadClipboardAsync()
+                            .ContinueWith(readClipboardTask
+                                =>_logger.LogInfo($"Clipboard: '{readClipboardTask.Result}'")));
                 }
                 catch (Exception ex)
                 {
@@ -206,7 +217,7 @@ public sealed class CardManager
     }
 
     /// <summary>
-    /// Убпать карту - удалить или переместить в каталог со всеми картами.
+    /// Урать карту - удалить или переместить в каталог со всеми картами.
     /// </summary>
     public void RemoveCard(Card? card)
     {
@@ -235,6 +246,8 @@ public sealed class CardManager
                 if (insertedCard != null)
                     insertedCard.IsInserted = false;
             }
+
+            CardStateUpdated?.Invoke(card, nameof(Card.IsInserted));
 
             _logger.LogInfo($"Card '{GetFileName(insertedCardPath)}' successfully removed.");
         }
@@ -267,13 +280,15 @@ public sealed class CardManager
             }
             else
             {
-                var lastPinIndex = Cards.OrderBy(c => c.PinIndex).Last().PinIndex;
+                var lastPinIndex = Cards.OrderBy(c => c.PinIndex).Last().PinIndex ?? -1;
                 card.PinIndex = lastPinIndex + 1;
                 Settings.PinnedCards.Add(GetCardName(card)!);
             }
 
             Settings.PinnedCards.RemoveAll(cardName => Cards.All(c => Path.GetFileNameWithoutExtension(c.Path) != cardName));
             _settingsManager.SaveSettings();
+
+            CardStateUpdated?.Invoke(card, nameof(Card.PinIndex));
         }
         catch (Exception ex)
         {

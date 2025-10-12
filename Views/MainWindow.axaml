@@ -224,7 +224,7 @@
                     </Grid>
 
                     <ListBox Grid.Row="1" x:Name="CardsListBox"
-                             ItemsSource="{Binding FilteredCards}">
+                             ItemsSource="{Binding FilteredCards}" >
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -244,14 +244,14 @@
                                             </ToolTip.Tip>
                                         </Button>
                                         <Button Classes="insert-on-time"
-                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeCommand}"
+                                                Command="{Binding InsertOnTimeCommand}"
                                                 CommandParameter="{Binding}">
                                             <ToolTip.Tip>
                                                 <TextBlock Text="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту на {0} секунд, затем убрать'}" />
                                             </ToolTip.Tip>
                                         </Button>
                                         <Button Classes="remove"
-                                                Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).RemoveCardCommand}"
+                                                Command="{Binding RemoveCommand}"
                                                 CommandParameter="{Binding}"
                                                 extensions:ControlExtensions.ToolTipText="Убрать карту"/>
 
@@ -259,10 +259,9 @@
                                     </StackPanel>
 
                                     <Button Classes="pin"
-                                            Command="{Binding $parent[ListBox].((vm:CardManagerViewModel)DataContext).PinCardCommand}"
+                                            Command="{Binding PinCommand}"
                                             CommandParameter="{Binding}" />
                                 </Grid>
-
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

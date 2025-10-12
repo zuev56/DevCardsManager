@@ -54,25 +54,4 @@ internal static class Mapper
 
         return settings;
     }
-
-    public static CardViewModel ToCardViewModel(this Card card)
-    {
-        var cardVm = new CardViewModel
-        {
-            Path = card.Path,
-            IsInserted = card.IsInserted,
-        };
-
-        cardVm.Pin(card.PinIndex);
-
-        return cardVm;
-    }
-
-    public static Card ToCard(this CardViewModel viewModel)
-        => new()
-        {
-            Path = viewModel.Path,
-            IsInserted = viewModel.IsInserted,
-            PinIndex = viewModel.PinIndex == -1 ? null : viewModel.PinIndex,
-        };
 }

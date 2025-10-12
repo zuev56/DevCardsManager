@@ -57,7 +57,7 @@ public sealed class DirectoryWatcher
     private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         var fsWatcher = (FileSystemWatcher) sender;
-        _logger.LogWarning($"File system changed: Path: {fsWatcher.Path}, File: {e.FullPath}, Action: {e.ChangeType}");
+        _logger.LogTrace($"File system: Path: {fsWatcher.Path}, File: {e.FullPath}, Action: {e.ChangeType}");
 
         DirectoryChanged?.Invoke(fsWatcher.Path);
     }

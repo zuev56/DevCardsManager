@@ -32,6 +32,9 @@ public sealed class Logger : ViewModelBase
         }
     }
 
+    public void LogTrace(string message)
+        => LogMessage(LogLevel.Trace, message);
+
     public void LogInfo(string message)
         => LogMessage(LogLevel.Information, message);
 
@@ -72,7 +75,8 @@ public sealed class Logger : ViewModelBase
         {
             lock (Locker)
             {
-                File.AppendAllLines("log.txt", [text]);
+                // File.AppendAllLines("log.txt", [text]);
+                //File.AppendAllText("log.txt", text + Environment.NewLine, Encoding.UTF8);
             }
         }
         catch (Exception e)
