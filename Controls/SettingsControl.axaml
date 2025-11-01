@@ -1,0 +1,69 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DevCardsManager.Controls.SettingsControl"
+             x:DataType="vm:SettingsViewModel">
+
+    <UserControl.Styles>
+
+        <Style Selector=":is(Panel).parameters-list">
+            <Style Selector="^ :is(TextBlock)">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <Style Selector="^ :is(TextBox)">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style Selector="^ :is(CheckBox)">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </Style>
+
+    </UserControl.Styles>
+
+    <Grid Classes="parameters-list" Margin="0,20,0,0">
+        <ScrollViewer AllowAutoHide="False">
+            <ItemsControl x:Name="Parameters" Margin="10,0"
+                          ItemsSource="{Binding Parameters}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="10" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.DataTemplates>
+                    <DataTemplate DataType="vm:IntegerParameterViewModel" >
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="20">
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <TextBox Grid.Column="1" Text="{Binding Value, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate DataType="vm:DoubleParameterViewModel" >
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="20">
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <TextBox Grid.Column="1" Text="{Binding Value, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate DataType="vm:StringParameterViewModel">
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="20">
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <TextBox Grid.Column="1" Text="{Binding Value, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate DataType="vm:BooleanParameterViewModel">
+                        <Grid ColumnDefinitions="200,*" ColumnSpacing="20">
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                            <CheckBox Grid.Column="1" IsChecked="{Binding Value}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.DataTemplates>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
