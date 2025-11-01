@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Models;
 
 public sealed class Settings
 {
+    private int _keepOnTopTransparency;
+
+    public const string FileName = "appsettings.json";
+
     [DisplayName("Каталог со всеми картами")]
     public required string AllCardsPath { get; set; }
 
@@ -24,11 +28,24 @@ public sealed class Settings
     [DisplayName("Тёмная тема")]
     public bool UseDarkTheme { get; set; } = true;
 
+    [DisplayName("Отображать поверх остальных окон")]
+    public bool KeepOnTop { get; set; }
+
+    [DisplayName("% прозрачности, когда поверх остальных окон")]
+    public int KeepOnTopTransparency
+    {
+        get => _keepOnTopTransparency > 100 ? 100 : _keepOnTopTransparency < 0 ? 0 : _keepOnTopTransparency;
+        set => _keepOnTopTransparency = value > 100 ? 100 : value < 0 ? 0 : value;
+    }
+
     [DisplayName("Сохранять изменения на карте после её использования")]
     public bool SaveCardChangesOnReturn { get; set; } = true;
 
     [DisplayName("Детальное логирование")]
     public bool DetailedLogging { get; set; }
+
+    // [DisplayName("Включить возможность прикладывания карты на время")]
+    // public bool AllowTemporarilyAttach { get; set; }
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];

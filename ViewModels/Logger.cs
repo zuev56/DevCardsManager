@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text;
+using ReactiveUI;
 
 namespace DevCardsManager.ViewModels;
 
-public sealed class Logger : ObservableObject
+// TODO: Переделать на стандартный логгер
+public sealed class Logger : ViewModelBase
 {
     private static class LogLevel
     {
@@ -16,6 +18,7 @@ public sealed class Logger : ObservableObject
     }
 
     private string _log = string.Empty;
+    private static readonly object FileLocker = new();
 
     public bool DetailedLogging { get; set; }
 
@@ -25,12 +28,18 @@ public sealed class Logger : ObservableObject
         private set
         {
             _log = value;
-            OnPropertyChanged();
+            this.RaisePropertyChanged();
         }
     }
 
+    public void LogTrace(string message)
+        => LogMessage(LogLevel.Trace, message);
+
     public void LogInfo(string message)
         => LogMessage(LogLevel.Information, message);
+
+    public void LogWarning(string message)
+        => LogMessage(LogLevel.Warning, message);
 
     public void LogError(string message)
         => LogMessage(LogLevel.Error, message);
@@ -38,7 +47,7 @@ public sealed class Logger : ObservableObject
     public void LogException(Exception exception) =>
         LogError($"{exception.GetType().Name}: {exception.Message}{Environment.NewLine}{exception.StackTrace}");
 
-    public void LogPerformance(TimeSpan duration, [CallerMemberName] string? methodName = null, [CallerFilePath] string sourceFilePath = "")
+    public void LogPerformance(TimeSpan duration, string? message = null, [CallerMemberName] string? methodName = null, [CallerFilePath] string sourceFilePath = "")
     {
         var logLevel = duration.TotalMilliseconds switch
         {
@@ -47,30 +56,51 @@ public sealed class Logger : ObservableObject
         };
 
         var className = Path.GetFileNameWithoutExtension(sourceFilePath);
-        LogMessage(logLevel, $"{className}.{methodName} ran for {duration.TotalMilliseconds:F2} ms");
+        LogMessage(logLevel, $"{className}.{methodName} ran for {duration.TotalMilliseconds:F2} ms{(string.IsNullOrWhiteSpace(message) ? "" : $". {message}")}");
     }
 
     private void LogMessage(string logLevel, string message)
     {
-        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {logLevel}: {message}";
-        Console.WriteLine(text);
-
         if (logLevel == LogLevel.Trace && !DetailedLogging)
             return;
 
-        Log += string.IsNullOrWhiteSpace(Log)
-            ? text
-            : $"{Environment.NewLine}{text}";
+        var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {logLevel} ({Environment.CurrentManagedThreadId}): {message}";
+        Console.WriteLine(text);
 
         try
         {
-            File.AppendAllLines("log.txt", [text]);
+            lock (FileLocker)
+            {
+                Log += string.IsNullOrWhiteSpace(Log)
+                    ? text
+                    : $"{Environment.NewLine}{text}";
+
+                WriteToFile(text);
+            }
         }
         catch (Exception e)
         {
-            Log += $"{e.GetType().Name}: {e.Message}{Environment.NewLine}{e.StackTrace}";
             Console.WriteLine(e);
+            Log += $"{e.GetType().Name}: {e.Message}{Environment.NewLine}{e.StackTrace}";
             throw;
+        }
+    }
+
+    private static void WriteToFile(string text, int counter = 0)
+    {
+        try
+        {
+            File.AppendAllText("log.txt", text + Environment.NewLine, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            if (counter++ < 3)
+            {
+                var exceptionInfo = $"{ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
+                WriteToFile($"{exceptionInfo}{Environment.NewLine}{text}", counter);
+            }
+            else
+                throw;
         }
     }
 }

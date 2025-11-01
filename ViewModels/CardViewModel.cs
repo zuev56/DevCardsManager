@@ -1,34 +1,62 @@
-﻿namespace DevCardsManager.ViewModels;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
+using DevCardsManager.Models;
+using DevCardsManager.Services;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+
+namespace DevCardsManager.ViewModels;
 
 public sealed class CardViewModel : ViewModelBase
 {
-    private bool _isInserted;
-    private int _pinIndex = -1;
-    public required string Path { get; init; }
-    public string CardName => System.IO.Path.GetFileNameWithoutExtension(Path);
-    public string FileName => System.IO.Path.GetFileName(Path);
+    private Card _card;
+    private readonly CardManager _cardManager;
+    private readonly Logger _logger;
 
-    public int PinIndex
+    public CardViewModel(Card card, CardManager cardManager, Logger logger)
     {
-        get => _pinIndex;
-        internal set
-        {
-            _pinIndex = value;
-            OnPropertyChanged();
-        }
+        _card = card;
+        _cardManager = cardManager;
+        _logger = logger;
+
+        InsertCommand = new AsyncRelayCommand(InsertAsync);
+        InsertOnTimeCommand = new AsyncRelayCommand(InsertOnTimeAsync);
+        RemoveCommand = new RelayCommand(Remove, () => _card.IsInserted);
+        PinCommand = new RelayCommand(Pin);
     }
 
+    public string Path => _card.Path;
+    public string CardName => System.IO.Path.GetFileNameWithoutExtension(_card.Path);
+    public int PinIndex => _card.PinIndex ?? -1;
     public bool IsPinned => PinIndex >= 0;
+    public bool IsInserted => _card.IsInserted;
+    [Reactive]
+    public bool IsSelected { get; set; }
 
-    public bool IsInserted
+    public ICommand InsertCommand { get; }
+    public ICommand InsertOnTimeCommand { get; }
+    public ICommand RemoveCommand { get; }
+    public ICommand PinCommand { get; }
+
+    public void Refresh(string changedPropertyName)
     {
-        get => _isInserted;
-        internal set
+        _card = _cardManager.Cards.Single(c => c.Path == Path);
+        _logger.LogTrace($"Card's '{CardName}' property '{changedPropertyName}' is changed to '{GetType().GetProperties().First(p => p.Name == changedPropertyName).GetValue(this)}'");
+
+        Dispatcher.UIThread.Invoke(() =>
         {
-            _isInserted = value;
-            OnPropertyChanged();
-        }
+            if (changedPropertyName == nameof(Card.PinIndex))
+                this.RaisePropertyChanged(nameof(IsPinned));
+            if (changedPropertyName == nameof(Card.IsInserted))
+                ((RelayCommand)RemoveCommand).NotifyCanExecuteChanged();
+        });
     }
 
-    public void UnPin() => PinIndex = -1;
+    private Task InsertAsync() => _cardManager.InsertCardAsync(_card);
+    private Task InsertOnTimeAsync() => _cardManager.InsertCardAsync(_card, removeOnTimeout: true);
+    private void Remove() => _cardManager.RemoveCard(_card);
+    private void Pin() => _cardManager.PinCard(_card);
 }

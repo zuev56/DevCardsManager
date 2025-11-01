@@ -1,45 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Text.Json;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Styling;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Configuration;
+using DevCardsManager.Models;
+using DevCardsManager.Services;
+using ReactiveUI;
 
 namespace DevCardsManager.ViewModels;
 
 public sealed class SettingsViewModel : ViewModelBase
 {
+    private readonly SettingsManager _settingsManager;
     private readonly Logger _logger;
-    private const string AppsettingsFileName = "appsettings.json";
 
-    public SettingsViewModel(Logger logger)
+    public SettingsViewModel(SettingsManager settingsManager, Logger logger)
     {
+        _settingsManager = settingsManager;
         _logger = logger;
-        InitializeSettings();
 
-        UpdateParameters();
-
-        ToggleThemeCommand = new RelayCommand(ToggleTheme);
+        ToggleThemeCommand = ReactiveCommand.Create(ToggleTheme);
     }
 
     public void UpdateParameters()
     {
         foreach (var parameter in Parameters)
-            parameter.PropertyChanged -= Parameter_OnChanged;
+            parameter.PropertyChanged -= OnParameterChanged;
 
-        Parameters = Settings.ToParameters(_logger);
-        OnPropertyChanged(nameof(Parameters));
+        Parameters = _settingsManager.Settings.ToParameters(_logger);
+        this.RaisePropertyChanged(nameof(Parameters));
 
         foreach (var parameter in Parameters)
-            parameter.PropertyChanged += Parameter_OnChanged;
+            parameter.PropertyChanged += OnParameterChanged;
     }
 
-    private void Parameter_OnChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnParameterChanged(object? sender, PropertyChangedEventArgs e)
     {
         var newValue = sender switch
         {
@@ -50,61 +46,23 @@ public sealed class SettingsViewModel : ViewModelBase
         };
         _logger.LogInfo($"Update parameter: '{e.PropertyName}', new value: '{newValue}'");
 
-        Settings = Parameters.ToSettings(Settings.PinnedCards);
-
-        SaveSettings();
+        _settingsManager.SaveSettings(Parameters.ToSettings(Settings.PinnedCards));
 
         if (e.PropertyName == nameof(Settings.UseDarkTheme))
             ActualizeTheme();
 
         if (e.PropertyName == nameof(Settings.SortAscending))
             ActualizeTheme();
-
-        OnPropertyChanged(nameof(Settings));
     }
 
-    public Settings Settings { get; private set; } = null!;
+    public Settings Settings => _settingsManager.Settings;
     public List<ParameterViewModel> Parameters { get; private set; } = [];
     public ICommand ToggleThemeCommand { get; }
-
-    private void InitializeSettings()
-    {
-        Settings = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile(AppsettingsFileName, optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .Build()
-            .Get<Settings>()!;
-    }
-
-    internal void SaveSettings()
-    {
-        var stopwatch = Stopwatch.StartNew();
-        try
-        {
-            var settingsContent = JsonSerializer.Serialize(Settings, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            });
-            File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), AppsettingsFileName), settingsContent);
-
-            OnPropertyChanged(nameof(Settings));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogException(ex);
-        }
-        finally
-        {
-            _logger.LogPerformance(stopwatch.Elapsed);
-        }
-    }
 
     private void ToggleTheme()
     {
         Settings.UseDarkTheme = !Settings.UseDarkTheme;
-        SaveSettings();
+        _settingsManager.SaveSettings();
         ActualizeTheme();
     }
 

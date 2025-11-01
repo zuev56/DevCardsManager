@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using DevCardsManager.Models;
 using DevCardsManager.ViewModels;
 
-namespace DevCardsManager;
+namespace DevCardsManager.Services;
 
 internal static class Mapper
 {
@@ -24,6 +25,7 @@ internal static class Mapper
             ParameterViewModel parameter = propertyValue switch
             {
                 int value => new IntegerParameterViewModel(propertyInfo.Name, displayName, value),
+                double value => new DoubleParameterViewModel(propertyInfo.Name, displayName, value),
                 string value => new StringParameterViewModel(propertyInfo.Name, displayName, value),
                 bool value => new BooleanParameterViewModel(propertyInfo.Name, displayName, value),
                 _ => throw new ArgumentOutOfRangeException(nameof(propertyInfo.Name), propertyValue, "Invalid property value")
@@ -46,6 +48,8 @@ internal static class Mapper
             InsertCardOnTimeMs = ((IntegerParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.InsertCardOnTimeMs))).Value,
             SortAscending = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SortAscending))).Value,
             UseDarkTheme = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.UseDarkTheme))).Value,
+            KeepOnTop = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.KeepOnTop))).Value,
+            KeepOnTopTransparency = ((IntegerParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.KeepOnTopTransparency))).Value,
             SaveCardChangesOnReturn = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SaveCardChangesOnReturn))).Value,
             DetailedLogging = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.DetailedLogging))).Value,
             PinnedCards = pinnedCards
