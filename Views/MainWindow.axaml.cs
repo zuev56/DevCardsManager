@@ -13,6 +13,15 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Activated += (_, _) => Opacity = 1.0;
+        Deactivated += (_, _) =>
+        {
+            if (Topmost)
+            {
+                var viewModel = (MainWindowViewModel)DataContext!;
+                Opacity = 1 - viewModel.SettingsViewModel.Settings.KeepOnTopTransparency / 100d;
+            }
+        };
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

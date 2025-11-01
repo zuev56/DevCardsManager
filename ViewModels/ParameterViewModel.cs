@@ -31,6 +31,8 @@ public abstract class ParameterViewModel<TValue>(string propertyName, string dis
 
 public sealed class IntegerParameterViewModel(string propertyName, string displayName, int value)
     : ParameterViewModel<int>(propertyName, displayName, value);
+public sealed class DoubleParameterViewModel(string propertyName, string displayName, double value)
+    : ParameterViewModel<double>(propertyName, displayName, value);
 public sealed class StringParameterViewModel(string propertyName, string displayName, string value)
     : ParameterViewModel<string>(propertyName, displayName, value);
 public sealed class BooleanParameterViewModel(string propertyName, string displayName, bool value)

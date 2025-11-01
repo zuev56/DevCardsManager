@@ -6,6 +6,8 @@ namespace DevCardsManager.Models;
 
 public sealed class Settings
 {
+    private int _keepOnTopTransparency;
+
     public const string FileName = "appsettings.json";
 
     [DisplayName("Каталог со всеми картами")]
@@ -28,6 +30,13 @@ public sealed class Settings
 
     [DisplayName("Отображать поверх остальных окон")]
     public bool KeepOnTop { get; set; }
+
+    [DisplayName("% прозрачности, когда поверх остальных окон")]
+    public int KeepOnTopTransparency
+    {
+        get => _keepOnTopTransparency > 100 ? 100 : _keepOnTopTransparency < 0 ? 0 : _keepOnTopTransparency;
+        set => _keepOnTopTransparency = value > 100 ? 100 : value < 0 ? 0 : value;
+    }
 
     [DisplayName("Сохранять изменения на карте после её использования")]
     public bool SaveCardChangesOnReturn { get; set; } = true;
