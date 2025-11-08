@@ -41,10 +41,8 @@
                     <Image Source="/Assets/insert_32x32.png" Stretch="Fill" />
                     <ToolTip.Tip>
                         <StackPanel>
-                            <TextBlock Text="{Binding $parent[ItemsRepeater].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Приложить карту', FallbackValue='Binding error'}"
-                                       IsVisible="{Binding !IsInserted}" />
-                            <TextBlock Text="{Binding $parent[ItemsRepeater].((vm:CardManagerViewModel)DataContext).InsertCardOnTimeSeconds, StringFormat='Убрать и снова приложить карту', FallbackValue='Binding error'}"
-                                       IsVisible="{Binding IsInserted}" />
+                            <TextBlock Text="Приложить карту" IsVisible="{Binding !IsInserted}" />
+                            <TextBlock Text="Убрать и снова приложить карту" IsVisible="{Binding IsInserted}" />
                         </StackPanel>
                     </ToolTip.Tip>
                 </Button>

@@ -1,0 +1,118 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+             xmlns:models="clr-namespace:DevCardsManager.Models"
+             xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DevCardsManager.Controls.LogCleanerControl"
+             x:DataType="vm:LogCleanerViewModel">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="LogItemTemplate" x:DataType="models:LogItemPattern">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <CheckBox Grid.Column="0" IsChecked="{Binding IsActive}"/>
+                <TextBox Grid.Column="1" Text="{Binding Content, UpdateSourceTrigger=LostFocus}" VerticalAlignment="Center">
+                    <ToolTip.Tip>
+                        <TextBlock Text="{Binding Content, FallbackValue='Binding error'}" />
+                    </ToolTip.Tip>
+                </TextBox>
+                <Button Grid.Column="2" Classes="amount" Foreground="#FFFF9C9C" Margin="5,0,0,0"
+                        Content="-"
+                        Command="{Binding $parent[ListBox].((vm:LogCleanerViewModel)DataContext).RemoveLogItemPatternCommand}"
+                        CommandParameter="{Binding}"
+                        extensions:ControlExtensions.ToolTipText="Удалить паттерн" />
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="5,3,3,3"/>
+        </Style>
+
+        <Style Selector="Button.process">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="BorderBrush" Value="#FF2B7638"/>
+            <Setter Property="BorderThickness" Value="2"/>
+
+            <Style Selector="^:pointerover ContentPresenter">
+                <Setter Property="BorderBrush" Value="#FF359246"/>
+            </Style>
+
+            <Style Selector="^ :is(TextBlock)">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+        </Style>
+
+        <Style Selector="Button.amount">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="8,2,8,3"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+
+            <Style Selector="^:pointerover :is(TextBlock)">
+                <Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
+            </Style>
+        </Style>
+    </UserControl.Styles>
+
+   <Grid RowDefinitions="Auto,*" RowSpacing="10">
+
+       <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+           <Button Classes="process"
+                   Content="Обработать данные в буфере обмена"
+                   Command="{Binding ProcessClipboardCommand}" />
+
+           <TextBlock Foreground="Green" VerticalAlignment="Center" TextWrapping="Wrap"
+                      Text="{Binding SuccessText}"
+                      IsVisible="{Binding SuccessText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+           <TextBlock Foreground="Red" VerticalAlignment="Center" TextWrapping="Wrap"
+                      Text="{Binding ErrorText}"
+                      IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+       </StackPanel>
+
+       <TabControl Grid.Row="1" Classes="horizontal" >
+           <TabItem Header="Исключить" IsSelected="{Binding RemoveMode}">
+               <Grid RowDefinitions="Auto,*" RowSpacing="5">
+                   <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="5" Margin="35,0,0,0">
+                       <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                  Text="Исключить строки с вхождением"/>
+                       <Button Grid.Column="1" Classes="amount" Foreground="#FF0FD627"
+                               Content="+"
+                               Command="{Binding AddLogItemPatternCommand}"
+                               extensions:ControlExtensions.ToolTipText="Добавить паттерн" />
+                   </Grid>
+
+                   <ListBox Grid.Row="1" ScrollViewer.AllowAutoHide="False"
+                            ItemTemplate="{StaticResource LogItemTemplate}"
+                            ItemsSource="{Binding PatternsToRemove}" />
+               </Grid>
+           </TabItem>
+
+           <TabItem Header="Оставить" IsSelected="{Binding LeaveOnlyMode}">
+               <Grid RowDefinitions="Auto,*" RowSpacing="5">
+                   <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="5" Margin="35,0,0,0">
+                       <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                  Text="Оставить только строки с вхождением" />
+                       <Button Grid.Column="1" Classes="amount" Foreground="#FF0FD627"
+                               Content="+"
+                               Command="{Binding AddLogItemPatternCommand}"
+                               extensions:ControlExtensions.ToolTipText="Добавить паттерн" />
+                   </Grid>
+
+                   <ListBox Grid.Row="1" ScrollViewer.AllowAutoHide="False"
+                            ItemTemplate="{StaticResource LogItemTemplate}"
+                            ItemsSource="{Binding PatternsToLeave}"/>
+               </Grid>
+           </TabItem>
+       </TabControl>
+   </Grid>
+
+</UserControl>

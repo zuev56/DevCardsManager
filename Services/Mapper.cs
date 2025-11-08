@@ -37,7 +37,7 @@ internal static class Mapper
         return parameters;
     }
 
-    public static Settings ToSettings(this IList<ParameterViewModel> parameters, List<string> pinnedCards)
+    public static Settings ToSettings(this IList<ParameterViewModel> parameters, List<string> pinnedCards, List<LogItemPattern> patternsToRemove, List<LogItemPattern> patternsToLeave)
     {
         // TODO: надо сделать так, чтобы не приходилось прописывать каждое новое свойство
         var settings = new Settings
@@ -52,7 +52,9 @@ internal static class Mapper
             KeepOnTopTransparency = ((IntegerParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.KeepOnTopTransparency))).Value,
             SaveCardChangesOnReturn = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.SaveCardChangesOnReturn))).Value,
             DetailedLogging = ((BooleanParameterViewModel)parameters.Single(p => p.PropertyName == nameof(Settings.DetailedLogging))).Value,
-            PinnedCards = pinnedCards
+            PinnedCards = pinnedCards,
+            LogRowPatternsToRemove = patternsToRemove,
+            LogRowPatternsToLeave = patternsToLeave
         };
 
         return settings;

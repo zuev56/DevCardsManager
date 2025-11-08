@@ -11,6 +11,7 @@
         Width="420" Height="600"
         Icon="/Assets/logo.ico"
         Title="CardsManager"
+        Padding="8,2,8,0"
         Topmost="{Binding CardManagerViewModel.KeepOnTop}">
 
     <Design.DataContext>
@@ -37,7 +38,8 @@
 
 
     <Grid x:Name="MainGrid">
-        <TabControl Margin="0,0,0,10" SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
+        <TabControl Margin="0,0,0,10" Classes="horizontal"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
 
             <TabItem Header="Карты">
                 <controls:CardManager DataContext="{Binding CardManagerViewModel}" />
@@ -47,8 +49,8 @@
                 <controls:SettingsControl DataContext="{Binding SettingsViewModel}"/>
             </TabItem>
 
-            <TabItem Header="Лог">
-                <TextBox Text="{Binding Logger.Log, Mode=OneWay}" IsReadOnly="True" FontFamily="Courier New, Consolas, Monaco, monospace" />
+            <TabItem Header="Утилиты">
+                <controls:LogCleanerControl DataContext="{Binding LogCleanerViewModel}" />
             </TabItem>
         </TabControl>
     </Grid>

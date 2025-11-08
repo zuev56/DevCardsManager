@@ -49,6 +49,12 @@ public sealed class Settings
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];
+
+    [Ignore]
+    public List<LogItemPattern> LogRowPatternsToRemove { get; set; } = [];
+
+    [Ignore]
+    public List<LogItemPattern> LogRowPatternsToLeave { get; set; } = [];
 }
 
 /// <summary>

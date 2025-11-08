@@ -21,13 +21,15 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(DirectoryWatcher directoryWatcher, SettingsManager settingsManager,
         CardManager cardManager, Logger logger, SettingsViewModel settingsViewModel,
-        CardManagerViewModel cardManagerViewModel)
+        CardManagerViewModel cardManagerViewModel, LogCleanerViewModel logCleanerViewModel)
     {
         _directoryWatcher = directoryWatcher;
         _settingsManager = settingsManager;
+
         CardManager = cardManager;
         Logger = logger;
         SettingsViewModel = settingsViewModel;
+        LogCleanerViewModel = logCleanerViewModel;
         CardManagerViewModel = cardManagerViewModel;
         try
         {
@@ -51,6 +53,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private Settings Settings => _settingsManager.Settings;
     public Logger Logger { get; }
     public SettingsViewModel SettingsViewModel { get; }
+    public LogCleanerViewModel LogCleanerViewModel { get; }
     public CardManagerViewModel CardManagerViewModel { get; }
     public CardManager CardManager { get; }
 

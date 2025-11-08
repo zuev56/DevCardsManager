@@ -46,7 +46,7 @@ public sealed class SettingsViewModel : ViewModelBase
         };
         _logger.LogInfo($"Update parameter: '{e.PropertyName}', new value: '{newValue}'");
 
-        _settingsManager.SaveSettings(Parameters.ToSettings(Settings.PinnedCards));
+        _settingsManager.SaveSettings(Parameters.ToSettings(Settings.PinnedCards, Settings.LogRowPatternsToRemove, Settings.LogRowPatternsToLeave));
 
         if (e.PropertyName == nameof(Settings.UseDarkTheme))
             ActualizeTheme();
