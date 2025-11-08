@@ -50,7 +50,7 @@
             </TabItem>
 
             <TabItem Header="Утилиты">
-                <controls:LogCleanerControl DataContext="{Binding LogCleanerViewModel}" />
+                <controls:UtilitiesControl DataContext="{Binding UtilitiesViewModel}" />
             </TabItem>
         </TabControl>
     </Grid>

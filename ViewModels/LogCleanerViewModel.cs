@@ -12,11 +12,11 @@ using ReactiveUI.Fody.Helpers;
 
 namespace DevCardsManager.ViewModels;
 
-public sealed class LogCleanerViewModel : ViewModelBase
+public sealed class LogFilterViewModel : ViewModelBase
 {
     private readonly SettingsManager _settingsManager;
 
-    public LogCleanerViewModel(SettingsManager settingsManager)
+    public LogFilterViewModel(SettingsManager settingsManager)
     {
         _settingsManager = settingsManager;
 

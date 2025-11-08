@@ -30,8 +30,8 @@ public sealed partial class MainWindow : Window
         viewModel.CardManager.AddToClipboardAsync = text => Clipboard!.SetTextAsync(text);
         viewModel.CardManager.ReadClipboardAsync = () => Clipboard!.GetTextAsync();
 
-        viewModel.LogCleanerViewModel.AddToClipboardAsync = text => Clipboard!.SetTextAsync(text);
-        viewModel.LogCleanerViewModel.ReadClipboardAsync = () => Clipboard!.GetTextAsync();
+        viewModel.UtilitiesViewModel.LogFilterViewModel.AddToClipboardAsync = text => Clipboard!.SetTextAsync(text);
+        viewModel.UtilitiesViewModel.LogFilterViewModel.ReadClipboardAsync = () => Clipboard!.GetTextAsync();
 
         ForceLayoutRecalculation();
     }

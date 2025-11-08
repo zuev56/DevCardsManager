@@ -4,16 +4,6 @@ using DevCardsManager.Services;
 
 namespace DevCardsManager.ViewModels;
 
-// TODO: УТИЛИТЫ
-// Запоминать расположение на экране
-// - Анализ лога на выявление повторяющихся строк, в т.ч. с минимальными изменениями (регулярка)
-// - Удаление из лога строк, содержащих заданный контент -> Clipboard
-// - Удаление из лога строк, содержащих контент, соответствующий регулярке -> Clipboard
-// - Мониторинг процессов, определение запущенной при разработке программы
-//   - Имитация отключения/подключения устройств
-//   - Определение каталога с бинами и логами в ProgramData
-//   - Открытие последнего файла лога/трейса
-
 public sealed class MainWindowViewModel : ViewModelBase
 {
     private readonly DirectoryWatcher _directoryWatcher;
@@ -21,7 +11,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(DirectoryWatcher directoryWatcher, SettingsManager settingsManager,
         CardManager cardManager, Logger logger, SettingsViewModel settingsViewModel,
-        CardManagerViewModel cardManagerViewModel, LogCleanerViewModel logCleanerViewModel)
+        CardManagerViewModel cardManagerViewModel, UtilitiesViewModel utilitiesViewModel)
     {
         _directoryWatcher = directoryWatcher;
         _settingsManager = settingsManager;
@@ -29,7 +19,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         CardManager = cardManager;
         Logger = logger;
         SettingsViewModel = settingsViewModel;
-        LogCleanerViewModel = logCleanerViewModel;
+        UtilitiesViewModel = utilitiesViewModel;
         CardManagerViewModel = cardManagerViewModel;
         try
         {
@@ -53,7 +43,7 @@ public sealed class MainWindowViewModel : ViewModelBase
     private Settings Settings => _settingsManager.Settings;
     public Logger Logger { get; }
     public SettingsViewModel SettingsViewModel { get; }
-    public LogCleanerViewModel LogCleanerViewModel { get; }
+    public UtilitiesViewModel UtilitiesViewModel { get; }
     public CardManagerViewModel CardManagerViewModel { get; }
     public CardManager CardManager { get; }
 

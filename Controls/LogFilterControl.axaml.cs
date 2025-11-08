@@ -2,9 +2,9 @@
 
 namespace DevCardsManager.Controls;
 
-public sealed partial class LogCleanerControl : UserControl
+public sealed partial class LogFilterControl : UserControl
 {
-    public LogCleanerControl()
+    public LogFilterControl()
     {
         InitializeComponent();
     }

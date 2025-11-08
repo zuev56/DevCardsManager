@@ -6,8 +6,8 @@
              xmlns:models="clr-namespace:DevCardsManager.Models"
              xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DevCardsManager.Controls.LogCleanerControl"
-             x:DataType="vm:LogCleanerViewModel">
+             x:Class="DevCardsManager.Controls.LogFilterControl"
+             x:DataType="vm:LogFilterViewModel">
 
     <UserControl.Resources>
         <DataTemplate x:Key="LogItemTemplate" x:DataType="models:LogItemPattern">
@@ -20,7 +20,7 @@
                 </TextBox>
                 <Button Grid.Column="2" Classes="amount" Foreground="#FFFF9C9C" Margin="5,0,0,0"
                         Content="-"
-                        Command="{Binding $parent[ListBox].((vm:LogCleanerViewModel)DataContext).RemoveLogItemPatternCommand}"
+                        Command="{Binding $parent[ListBox].((vm:LogFilterViewModel)DataContext).RemoveLogItemPatternCommand}"
                         CommandParameter="{Binding}"
                         extensions:ControlExtensions.ToolTipText="Удалить паттерн" />
             </Grid>
