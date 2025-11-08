@@ -1,0 +1,28 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+    <Style Selector="TabControl.horizontal">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="15"/>
+            </ItemsPanelTemplate>
+        </Setter>
+
+        <Style Selector="^ TabItem">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="MinHeight" Value="35"/>
+            <Setter Property="Padding" Value="0"/>
+
+            <Style Selector="^ /template/ Border#PART_SelectedPipe">
+                <Setter Property="Margin" Value="0,0,0,7"/>
+            </Style>
+            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="VerticalAlignment" Value="Top"/>
+            </Style>
+        </Style>
+
+    </Style>
+
+</Styles>
