@@ -1,4 +1,6 @@
-﻿namespace DevCardsManager.Models;
+﻿using DevCardsManager.Services;
+
+namespace DevCardsManager.Models;
 
 public sealed class Card
 {
@@ -6,4 +8,5 @@ public sealed class Card
     public int? PinIndex { get; set; }
     public bool IsInserted { get; set; }
     public void UnPin() => PinIndex = null;
+    public CardData Data { get; set; } = null!;
 }

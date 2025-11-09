@@ -31,9 +31,9 @@
             PointerPressed="OnCardPointerPressed">
         <Grid>
 
-            <StackPanel Orientation="Horizontal" Spacing="3" Height="24" Margin="10,0" >
+            <StackPanel Orientation="Horizontal" Spacing="3" Margin="10,0" >
 
-                <Image Source="/Assets/card_32x23.png" />
+                <Image Source="/Assets/card_32x23.png" Height="24" />
 
                 <Button Command="{Binding InsertCommand}"
                         CommandParameter="{Binding}"
@@ -61,7 +61,13 @@
                     <Image Source="/Assets/remove_32x32.png" Stretch="Fill" />
                 </Button>
 
-                <TextBlock Text="{Binding CardName}" VerticalAlignment="Center" />
+                <StackPanel Spacing="3" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CardName}" />
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="UID:" FontSize="11" Foreground="#FF9FA0BF" />
+                        <SelectableTextBlock Text="{Binding Uid}" FontSize="11" Foreground="#FF9FA0BF" />
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
 
             <Button Command="{Binding PinCommand}"
