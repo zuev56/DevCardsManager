@@ -22,6 +22,10 @@ public sealed class CardViewModel : ViewModelBase
         _cardManager = cardManager;
         _logger = logger;
 
+        Uid = card.Data.Uid.Any(b => b != 0)
+            ? card.Data.UidString
+            : "-";
+
         InsertCommand = new AsyncRelayCommand(InsertAsync);
         InsertOnTimeCommand = new AsyncRelayCommand(InsertOnTimeAsync);
         RemoveCommand = new RelayCommand(Remove, () => _card.IsInserted);
@@ -30,6 +34,7 @@ public sealed class CardViewModel : ViewModelBase
 
     public string Path => _card.Path;
     public string CardName => System.IO.Path.GetFileNameWithoutExtension(_card.Path);
+    public string Uid { get; }
     public int PinIndex => _card.PinIndex ?? -1;
     public bool IsPinned => PinIndex >= 0;
     public bool IsInserted => _card.IsInserted;

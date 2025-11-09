@@ -63,6 +63,11 @@ public sealed class CardManager
             var insertedCard = Cards.Single(c => GetFileName(c.Path) == GetFileName(insertedCardPath));
             insertedCard.IsInserted = true;
 
+            var cardPathToDataMap = Cards
+                .Select(c => c.Path).AsParallel()
+                .ToDictionary(path => path, ReadCardData);
+            Cards.ForEach(c => c.Data = cardPathToDataMap[c.Path]!);
+
             CardStateUpdated?.Invoke(insertedCard, nameof(Card.IsInserted));
         }
         catch (Exception ex)
@@ -298,4 +303,148 @@ public sealed class CardManager
     private string? GetFileName(string? path) => Path.GetFileNameWithoutExtension(path);
 
     private string? GetCardName(Card? card) => GetFileName(card?.Path);
+
+
+    public static void AnalyzeCardDump(byte[] data)
+    {
+        // TODO: доразобраться
+        // var info = new CardInfo
+        // {
+        //     FileSize = data.Length,
+        //     IsValid = true
+        // };
+        //
+        // // Определяем тип карты по размеру
+        // info.Type = data.Length switch
+        // {
+        //     1024 => CardType.MifareClassic1K,
+        //     4096 => CardType.MifareClassic4K,
+        //     64 => CardType.MifareUltralight,
+        //     _ => CardType.Unknown
+        // };
+
+        // Извлекаем UID в зависимости от типа карты
+        // info.Uid = info.Type switch
+        // {
+        //     CardType.MifareClassic1K or CardType.MifareClassic4K => GetMifareClassicUid(data),
+        //     CardType.MifareUltralight => GetMifareUltralightUid(data),
+        //     _ => GetGenericUid(data)
+        // };
+
+        //info.UidString = BitConverter.ToString(info.Uid).Replace("-", "");
+
+        // return info;
+    }
+
+    private static CardData? ReadCardData(string cardImagePath)
+    {
+        try
+        {
+            var imageBytes = File.ReadAllBytes(cardImagePath);
+            using var fileStream = File.Open(cardImagePath, FileMode.Open);
+            using var reader = new BinaryReader(fileStream);
+
+            var cardType = imageBytes[0] switch
+            {
+                0 => CardType.MifareUltralightC,
+                1 => CardType.MifareClassic1K,
+                2 => CardType.MifareClassic4K,
+                3 => CardType.MifarePlus2K,
+                4 => CardType.MifareUltralightEv1,
+                _ => CardType.Unknown
+            };
+            var uidLength = imageBytes[1];
+            var uid = imageBytes[2..(2 + uidLength)];
+
+            return new CardData(imageBytes, cardType, uid);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+}
+
+public enum CardType
+{
+    /*
+     Модель карты	        Общий объем памяти	Размер UID (байт) Примечания
+     MIFARE Classic 1K	    1024 байт (1 КБ)	4	              Стандартная карта. UID постоянный и не может быть изменен.
+     MIFARE Classic 4K	    4096 байт (4 КБ)	4 или 7	          Имеет 4-байтный UID, но некоторые версии (например, Plus 4K) поддерживают 7-байтный.
+     MIFARE Plus 2K	        2048 байт (2 КБ)	4 или 7	          Более безопасная замена Classic. Поддерживает оба размера UID.
+     MIFARE Plus 4K	        4096 байт (4 КБ)	4 или 7	          Аналог Classic 4K с улучшенной криптографией.
+     MIFARE Ultralight	    64 байта	        7	              Бюджетная карта для одноразовых применений. Часто используется в NFC-билетах.
+     MIFARE Ultralight C	192 байта	        7	              Версия Ultralight с шифрованием (3DES).
+     MIFARE Ultralight EV1	64 или 192 байта	7	              Улучшенная версия с большим объемом памяти и функциями защиты.
+     MIFARE DESFire EV2 2K	2048 байт (2 КБ)	7	              Карта высокого класса с файловой системой и продвинутой безопасностью.
+     MIFARE DESFire EV3 4K	4096 байт (4 КБ)	7	              Флагманская модель с наибольшей памятью и безопасностью.
+    */
+
+    Unknown,
+    MifareClassic1K,    // Объём памяти: 1024     Размер UID: 4
+    MifareClassic4K,    // Объём памяти: 4096     Размер UID: 4 или 7
+    MifarePlus2K,       // Объём памяти: 2048     Размер UID: 4 или 7
+    MifarePlus4K,       // Объём памяти: 4096     Размер UID: 4 или 7
+    MifareUltralight,   // Объём памяти: 64       Размер UID: 7
+    MifareUltralightC,  // Объём памяти: 192      Размер UID: 7
+    MifareUltralightEv1 // Объём памяти: 64/192   Размер UID: 7
+}
+
+public sealed class CardData
+{
+    public CardData(byte[] data, CardType type, byte[] uid)
+    {
+        Data = data;
+        Type = type;
+        FileSize = data.Length;
+
+        var arr = new byte[8];
+        Array.Copy(uid, arr, uid.Length);
+        Uid = arr;
+        UidString = BitConverter.ToUInt64(Uid, 0).ToString();
+    }
+
+    public byte[] Data { get; }
+    public CardType Type { get; }
+    public byte[] Uid { get; }
+    public string UidString { get; }
+    public int FileSize { get; }
+
+    // TODO: доразобраться
+    // private byte[] GetMifareClassicUid()
+    // {
+    //     // Для Mifare Classic UID находится в блоке 0 (байты 0-3)
+    //     if (Data.Length >= 16)
+    //     {
+    //         var uid = new byte[4];
+    //         Array.Copy(Data, 0, uid, 0, 4);
+    //         return uid;
+    //     }
+    //     return [];
+    // }
+    //
+    // private byte[] GetMifareUltralightUid()
+    // {
+    //     // Для Mifare Ultralight UID находится в страницах 0-1
+    //     if (Data.Length >= 8)
+    //     {
+    //         var uid = new byte[7];
+    //         Array.Copy(Data, 0, uid, 0, 7);
+    //         return uid;
+    //     }
+    //     return [];
+    // }
+    //
+    // private byte[] GetGenericUid()
+    // {
+    //     // Универсальный метод - пытаемся найти UID в начале файла
+    //     if (Data.Length >= 4)
+    //     {
+    //         var uid = new byte[4];
+    //         Array.Copy(Data, 0, uid, 0, 4);
+    //         return uid;
+    //     }
+    //     return [];
+    // }
 }
