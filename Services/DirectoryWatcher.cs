@@ -8,6 +8,7 @@ namespace DevCardsManager.Services;
 
 public sealed class DirectoryWatcher
 {
+    private static DateTime _lastDirectoryChangeTime = DateTime.MinValue;
     private readonly Logger _logger;
     private readonly Dictionary<string, FileSystemWatcher> _dirNameToFsWatcherMap = new();
 
@@ -42,11 +43,11 @@ public sealed class DirectoryWatcher
             newFsWatcher.Error += FileSystemWatcher_OnError;
             _dirNameToFsWatcherMap.Add(dirName, newFsWatcher);
 
-            DirectoryChanged?.Invoke(newPath);
+            OnDirectoryChanged(path);
             return;
         }
 
-        DirectoryChanged?.Invoke(null);
+        OnDirectoryChanged(path);
     }
 
     private void FileSystemWatcher_OnError(object sender, ErrorEventArgs args)
@@ -57,8 +58,15 @@ public sealed class DirectoryWatcher
     private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
     {
         var fsWatcher = (FileSystemWatcher) sender;
-        // _logger.LogTrace($"File system: Path: {fsWatcher.Path}, File: {e.FullPath}, Action: {e.ChangeType}");
 
-        DirectoryChanged?.Invoke(fsWatcher.Path);
+        OnDirectoryChanged(fsWatcher.Path);
+    }
+
+    private void OnDirectoryChanged(string? path)
+    {
+        if (DateTime.Now - _lastDirectoryChangeTime > TimeSpan.FromMilliseconds(300))
+            DirectoryChanged?.Invoke(path);
+
+        _lastDirectoryChangeTime = DateTime.Now;
     }
 }

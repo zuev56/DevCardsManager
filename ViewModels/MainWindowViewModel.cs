@@ -23,13 +23,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         CardManagerViewModel = cardManagerViewModel;
         try
         {
-            _directoryWatcher.DirectoryChanged += path =>
-            {
-                if (path == Settings.AllCardsPath)
-                    CardManagerViewModel.ActualizeCardList();
-                else if (path == Settings.InsertedCardPath)
-                    CardManager.CopyInsertedCardToAllCardsDirIfNotExists();
-            };
             ApplySettingsOnStartup();
             SettingsViewModel.ActualizeTheme();
             _settingsManager.ParameterChanged += SettingsParameterChanged;

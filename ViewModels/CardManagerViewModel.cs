@@ -26,28 +26,21 @@ public sealed class CardManagerViewModel : ViewModelBase
 
     public CardManagerViewModel(CardManager cardManager, SettingsManager settingsManager, Logger logger)
     {
-        try
-        {
-            _cardManager = cardManager;
-            _settingsManager = settingsManager;
-            _logger = logger;
+        _cardManager = cardManager;
+        _settingsManager = settingsManager;
+        _logger = logger;
 
-            UpdateCardsCommand = ReactiveCommand.Create(ActualizeCardList);
-            ChangeSortOrderCommand = ReactiveCommand.Create(ChangeSortOrder);
-            ClearFilterCommand = ReactiveCommand.Create(() => FilterText = null);
+        _keepOnTop = Settings.KeepOnTop;
+        _saveCardChangesOnReturn = Settings.SaveCardChangesOnReturn;
 
-            ActualizeCardList();
+        _cardManager.CardStateUpdated += OnCardStateUpdated;
+        _settingsManager.ParameterChanged += OnSettingsParameterChanged;
 
-            _cardManager.CardStateUpdated += OnCardStateUpdated;
-            _settingsManager.ParameterChanged += SettingsParameterChanged;
+        UpdateCardsCommand = ReactiveCommand.Create(ActualizeCardList);
+        ChangeSortOrderCommand = ReactiveCommand.Create(ChangeSortOrder);
+        ClearFilterCommand = ReactiveCommand.Create(() => FilterText = null);
 
-            _keepOnTop = Settings.KeepOnTop;
-            _saveCardChangesOnReturn = Settings.SaveCardChangesOnReturn;
-        }
-        catch (Exception e)
-        {
-            logger.LogException(e);
-        }
+        ActualizeCardList();
     }
 
     private Settings Settings => _settingsManager.Settings;
@@ -149,11 +142,17 @@ public sealed class CardManagerViewModel : ViewModelBase
 
             _cardManager.ActualizeCardList();
 
-            var allCards = _cardManager.Cards.Select(card => new CardViewModel(card, _cardManager, _logger));
+            var allCards = _cardManager.Cards.Select(card => new CardViewModel(card, _cardManager, _logger)).ToList();
+
+            // На случай, когда вставленную карту заменили в обход этой программы
+            if (allCards.Count(c => c.IsInserted) > 1)
+                foreach (var cardVm in allCards.Where(c => c.IsInserted))
+                    OnCardStateUpdated(_cardManager.Cards.Single(c => c.Path == cardVm.Path), nameof(Card.IsInserted));
 
             _filteredCards = string.IsNullOrWhiteSpace(_filterText)
-                ? allCards.ToList()
-                : allCards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase))
+                ? allCards
+                : allCards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase)
+                                   || c.Uid.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase))
                     .ToList();
 
             SortCards();
@@ -184,7 +183,7 @@ public sealed class CardManagerViewModel : ViewModelBase
         SortCards();
     }
 
-    private void SettingsParameterChanged(string parameterName)
+    private void OnSettingsParameterChanged(string parameterName)
     {
         switch (parameterName)
         {

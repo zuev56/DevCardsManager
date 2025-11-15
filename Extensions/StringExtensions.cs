@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace DevCardsManager.Extensions;
 
@@ -32,5 +33,17 @@ public static class StringExtensions
         {
             return false;
         }
+    }
+
+
+    internal static bool PathEquals(this string? path, string? other)
+    {
+        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(other))
+            return false;
+
+        path = ToOsSpecificDirectorySeparatorChar(path);
+        other = ToOsSpecificDirectorySeparatorChar(other);
+
+        return path.Equals(other, StringComparison.InvariantCultureIgnoreCase);
     }
 }

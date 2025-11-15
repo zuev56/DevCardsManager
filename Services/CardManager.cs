@@ -16,13 +16,17 @@ public sealed class CardManager
     private int _insertionInProgress;
     private int _removeCardOnTimeoutTaskId = -1;
 
+    private readonly DirectoryWatcher _directoryWatcher;
     private readonly SettingsManager _settingsManager;
     private readonly Logger _logger;
 
-    public CardManager(SettingsManager settingsManager, Logger logger)
+    public CardManager(DirectoryWatcher directoryWatcher, SettingsManager settingsManager, Logger logger)
     {
+        _directoryWatcher = directoryWatcher;
         _settingsManager = settingsManager;
         _logger = logger;
+
+        _directoryWatcher.DirectoryChanged += OnDirectoryChanged;
 
         ActualizeCardList();
     }
@@ -54,19 +58,26 @@ public sealed class CardManager
             Cards.RemoveAll(c => actualCards.All(ac => ac.Path != c.Path));
             Cards.AddRange(actualCards.Where(ac => Cards.All(c => c.Path != ac.Path)));
 
+            var cardPathToDataMap = Cards
+                .Select(c => c.Path).AsParallel()
+                .ToDictionary(path => path, path => ReadCardData(path));
+            Cards.ForEach(c => c.Data = cardPathToDataMap[c.Path]!);
+
             var insertedCardPath = GetInsertedCardPath();
             if (string.IsNullOrWhiteSpace(insertedCardPath))
+            {
+                foreach (var card in Cards.Where(c => c.IsInserted))
+                {
+                    card.IsInserted = false;
+                    CardStateUpdated?.Invoke(card, nameof(Card.IsInserted));
+                }
                 return;
+            }
 
             CopyInsertedCardToAllCardsDirIfNotExists();
 
             var insertedCard = Cards.Single(c => GetFileName(c.Path) == GetFileName(insertedCardPath));
             insertedCard.IsInserted = true;
-
-            var cardPathToDataMap = Cards
-                .Select(c => c.Path).AsParallel()
-                .ToDictionary(path => path, ReadCardData);
-            Cards.ForEach(c => c.Data = cardPathToDataMap[c.Path]!);
 
             CardStateUpdated?.Invoke(insertedCard, nameof(Card.IsInserted));
         }
@@ -80,7 +91,7 @@ public sealed class CardManager
         }
     }
 
-    public void CopyInsertedCardToAllCardsDirIfNotExists()
+    private void CopyInsertedCardToAllCardsDirIfNotExists()
     {
         var insertedCardPath = GetInsertedCardPath();
         if (insertedCardPath == null)
@@ -89,6 +100,7 @@ public sealed class CardManager
         var copyInAllCardsPath = Path.Combine(Settings.AllCardsPath, Path.GetFileName(insertedCardPath));
         if (!File.Exists(copyInAllCardsPath))
             File.Copy(insertedCardPath, copyInAllCardsPath, overwrite: false);
+        //TODO: добавить модель карты в список
     }
 
     private string? GetInsertedCardPath()
@@ -133,12 +145,15 @@ public sealed class CardManager
                 try
                 {
                     Interlocked.Exchange(ref _insertionInProgress, 1);
+
+                    _directoryWatcher.DirectoryChanged -= OnDirectoryChanged;
+
                     var currentlyInsertedCardPath = GetInsertedCardPath();
                     if (currentlyInsertedCardPath != null)
                     {
                         var currentlyInsertedCard =
                             Cards.Single(c => GetFileName(c.Path) == GetFileName(currentlyInsertedCardPath));
-                        RemoveCard(currentlyInsertedCard);
+                        RemoveCard(currentlyInsertedCard, removeDuringInserting: true);
 
                         stopwatch.Stop();
                         await Task.Delay(Settings.ReplaceCardDelayMs);
@@ -181,6 +196,7 @@ public sealed class CardManager
                 finally
                 {
                     SetInsertionFinished();
+                    _directoryWatcher.DirectoryChanged += OnDirectoryChanged;
                     _logger.LogPerformance(stopwatch.Elapsed);
                 }
             })
@@ -218,7 +234,7 @@ public sealed class CardManager
     /// <summary>
     /// Урать карту - удалить или переместить в каталог со всеми картами.
     /// </summary>
-    public void RemoveCard(Card card)
+    public void RemoveCard(Card card, bool removeDuringInserting = false)
     {
         var stopwatch = Stopwatch.StartNew();
         try
@@ -228,6 +244,8 @@ public sealed class CardManager
             var insertedCardPath = GetInsertedCardPath();
             if (insertedCardPath != null)
             {
+                _directoryWatcher.DirectoryChanged -= OnDirectoryChanged;
+
                 if (Settings.SaveCardChangesOnReturn)
                 {
                     _logger.LogInfo($"Removing card: '{GetFileName(insertedCardPath)}' (move back to the all cards directory).");
@@ -257,6 +275,8 @@ public sealed class CardManager
         finally
         {
             _removeCardOnTimeoutTaskId = -1;
+            if (!removeDuringInserting)
+                _directoryWatcher.DirectoryChanged += OnDirectoryChanged;
             _logger.LogPerformance(stopwatch.Elapsed);
         }
     }
@@ -294,6 +314,17 @@ public sealed class CardManager
         {
             _logger.LogPerformance(stopwatch.Elapsed);
         }
+    }
+
+    // Метод должен выполняться только если каталог был изменён не этой программой
+    private void OnDirectoryChanged(string? path)
+    {
+        if (path.PathEquals(Settings.InsertedCardPath))
+            CopyInsertedCardToAllCardsDirIfNotExists();
+
+        ActualizeCardList();
+
+        _logger.LogTrace($"Directory changed: {path}");
     }
 
     private bool SetInsertionInProgress() => Interlocked.CompareExchange(ref _insertionInProgress, 1, 0) == 0;
@@ -336,7 +367,7 @@ public sealed class CardManager
         // return info;
     }
 
-    private static CardData? ReadCardData(string cardImagePath)
+    private static CardData? ReadCardData(string cardImagePath, int attempt = 3)
     {
         try
         {
@@ -360,6 +391,10 @@ public sealed class CardManager
         }
         catch
         {
+            if (--attempt > 0)
+                // TODO: Delay
+                return ReadCardData(cardImagePath, attempt);
+
             return null;
         }
     }
