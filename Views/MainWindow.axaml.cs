@@ -7,6 +7,7 @@ using DevCardsManager.ViewModels;
 
 namespace DevCardsManager.Views;
 
+// TODO: Сохранять размер экрана и положение при выходе
 public sealed partial class MainWindow : Window
 {
     public MainWindow()

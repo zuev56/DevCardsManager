@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
              xmlns:controls="clr-namespace:DevCardsManager.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DevCardsManager.Controls.CardManager"
+             x:Class="DevCardsManager.Controls.CardManagerControl"
              x:DataType="vm:CardManagerViewModel">
 
     <UserControl.Styles>

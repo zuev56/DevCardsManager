@@ -2,9 +2,9 @@
 
 namespace DevCardsManager.Controls;
 
-public sealed partial class CardManager : UserControl
+public sealed partial class CardManagerControl : UserControl
 {
-    public CardManager()
+    public CardManagerControl()
     {
         InitializeComponent();
     }

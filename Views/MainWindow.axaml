@@ -42,7 +42,7 @@
                     SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
 
             <TabItem Header="Карты">
-                <controls:CardManager DataContext="{Binding CardManagerViewModel}" />
+                <controls:CardManagerControl DataContext="{Binding CardManagerViewModel}" />
             </TabItem>
 
             <TabItem Header="Настройки">
