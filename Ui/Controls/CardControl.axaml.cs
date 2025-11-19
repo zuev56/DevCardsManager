@@ -1,8 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using DevCardsManager.ViewModels;
 
-namespace DevCardsManager.Controls;
+namespace DevCardsManager.Ui.Controls;
 
 public sealed partial class CardControl : UserControl
 {

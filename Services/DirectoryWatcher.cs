@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using DevCardsManager.Extensions;
-using DevCardsManager.ViewModels;
 
 namespace DevCardsManager.Services;
 

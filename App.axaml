@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="DevCardsManager.App"
              xmlns:local="clr-namespace:DevCardsManager"
-             xmlns:converters="clr-namespace:DevCardsManager.Views.Converters"
+             xmlns:converters="clr-namespace:DevCardsManager.Ui.Converters"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -16,6 +16,6 @@
   
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://DevCardsManager/Views/Styles.axaml" />
+        <StyleInclude Source="avares://DevCardsManager/Ui/Styles.axaml" />
     </Application.Styles>
 </Application>

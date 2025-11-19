@@ -2,11 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
              xmlns:models="clr-namespace:DevCardsManager.Models"
              xmlns:extensions="clr-namespace:DevCardsManager.Extensions"
+             xmlns:vm="clr-namespace:DevCardsManager.Ui.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DevCardsManager.Controls.LogFilterControl"
+             x:Class="DevCardsManager.Ui.Controls.LogFilterControl"
              x:DataType="vm:LogFilterViewModel">
 
     <UserControl.Resources>

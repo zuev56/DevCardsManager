@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
+             xmlns:vm="clr-namespace:DevCardsManager.Ui.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DevCardsManager.Controls.SettingsControl"
+             x:Class="DevCardsManager.Ui.Controls.SettingsControl"
              x:DataType="vm:SettingsViewModel">
 
     <UserControl.Styles>

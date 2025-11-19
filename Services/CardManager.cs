@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DevCardsManager.Extensions;
 using DevCardsManager.Models;
-using DevCardsManager.ViewModels;
 
 namespace DevCardsManager.Services;
 

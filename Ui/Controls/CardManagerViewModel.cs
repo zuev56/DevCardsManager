@@ -10,7 +10,7 @@ using DevCardsManager.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui.Controls;
 
 public sealed class CardManagerViewModel : ViewModelBase
 {

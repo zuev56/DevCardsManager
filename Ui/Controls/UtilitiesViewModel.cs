@@ -1,4 +1,4 @@
-﻿namespace DevCardsManager.ViewModels;
+﻿namespace DevCardsManager.Ui.Controls;
 
 // TODO: УТИЛИТЫ
 // Запоминать расположение на экране

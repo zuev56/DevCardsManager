@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using DevCardsManager.Models;
-using DevCardsManager.ViewModels;
+using DevCardsManager.Ui.Controls;
 
 namespace DevCardsManager.Services;
 

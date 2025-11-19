@@ -3,8 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using DevCardsManager.Services;
-using DevCardsManager.ViewModels;
-using DevCardsManager.Views;
+using DevCardsManager.Ui;
 using Prism.DryIoc;
 using Prism.Ioc;
 

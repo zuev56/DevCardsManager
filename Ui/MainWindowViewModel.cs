@@ -1,8 +1,9 @@
 ﻿using System;
 using DevCardsManager.Models;
 using DevCardsManager.Services;
+using DevCardsManager.Ui.Controls;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {

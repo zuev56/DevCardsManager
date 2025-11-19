@@ -2,9 +2,10 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using DevCardsManager.Ui;
 using ReactiveUI;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Services;
 
 // TODO: Переделать на стандартный логгер
 public sealed class Logger : ViewModelBase
