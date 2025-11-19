@@ -152,7 +152,8 @@ public sealed class CardManagerViewModel : ViewModelBase
             _filteredCards = string.IsNullOrWhiteSpace(_filterText)
                 ? allCards
                 : allCards.Where(c => c.CardName.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase)
-                                   || c.Uid.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase))
+                                   || c.UidString.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase)
+                                   || c.ChipSerialNumber.Contains(_filterText, StringComparison.CurrentCultureIgnoreCase))
                     .ToList();
 
             SortCards();

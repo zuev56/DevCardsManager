@@ -65,7 +65,9 @@
                     <TextBlock Text="{Binding CardName}" />
                     <StackPanel Orientation="Horizontal" Spacing="3">
                         <TextBlock Text="UID:" FontSize="11" Foreground="#FF9FA0BF" />
-                        <SelectableTextBlock Text="{Binding Uid}" FontSize="11" Foreground="#FF9FA0BF" />
+                        <SelectableTextBlock Text="{Binding UidString}" FontSize="11" Foreground="#FF9FA0BF" />
+                        <!-- <TextBlock Text="CSN:" FontSize="11" Foreground="#FF9FA0BF" /> -->
+                        <!-- <SelectableTextBlock Text="{Binding ChipSerialNumber}" FontSize="11" Foreground="#FF9FA0BF" /> -->
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
