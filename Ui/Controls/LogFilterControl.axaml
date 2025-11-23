@@ -22,7 +22,7 @@
                         Content="-"
                         Command="{Binding $parent[ListBox].((vm:LogFilterViewModel)DataContext).RemoveLogItemPatternCommand}"
                         CommandParameter="{Binding}"
-                        extensions:ControlExtensions.ToolTipText="Удалить паттерн" />
+                        ToolTip.Tip="Удалить паттерн" />
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
@@ -87,7 +87,7 @@
                        <Button Grid.Column="1" Classes="amount" Foreground="#FF0FD627"
                                Content="+"
                                Command="{Binding AddLogItemPatternCommand}"
-                               extensions:ControlExtensions.ToolTipText="Добавить паттерн" />
+                               ToolTip.Tip="Добавить паттерн" />
                    </Grid>
 
                    <ListBox Grid.Row="1" ScrollViewer.AllowAutoHide="False"
@@ -104,7 +104,7 @@
                        <Button Grid.Column="1" Classes="amount" Foreground="#FF0FD627"
                                Content="+"
                                Command="{Binding AddLogItemPatternCommand}"
-                               extensions:ControlExtensions.ToolTipText="Добавить паттерн" />
+                               ToolTip.Tip="Добавить паттерн" />
                    </Grid>
 
                    <ListBox Grid.Row="1" ScrollViewer.AllowAutoHide="False"
