@@ -2,11 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:DevCardsManager.ViewModels"
-        xmlns:converters="clr-namespace:DevCardsManager.Views.Converters"
-        xmlns:controls="clr-namespace:DevCardsManager.Controls"
+        xmlns:vm="clr-namespace:DevCardsManager.Ui"
+        xmlns:converters="clr-namespace:DevCardsManager.Ui.Converters"
+        xmlns:controls="clr-namespace:DevCardsManager.Ui.Controls"
         mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="600"
-        x:Class="DevCardsManager.Views.MainWindow"
+        x:Class="DevCardsManager.Ui.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="420" Height="600"
         Icon="/Assets/logo.ico"
@@ -42,7 +42,7 @@
                     SelectedIndex="{Binding SelectedTabIndex, Mode=OneWayToSource}">
 
             <TabItem Header="Карты">
-                <controls:CardManager DataContext="{Binding CardManagerViewModel}" />
+                <controls:CardManagerControl DataContext="{Binding CardManagerViewModel}" />
             </TabItem>
 
             <TabItem Header="Настройки">

@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text.Json;
 using DevCardsManager.Extensions;
 using DevCardsManager.Models;
-using DevCardsManager.ViewModels;
 using Microsoft.Extensions.Configuration;
 
 namespace DevCardsManager.Services;

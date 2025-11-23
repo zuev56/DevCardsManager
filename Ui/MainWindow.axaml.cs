@@ -3,10 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
-using DevCardsManager.ViewModels;
 
-namespace DevCardsManager.Views;
+namespace DevCardsManager.Ui;
 
+// TODO: Сохранять размер экрана и положение при выходе
 public sealed partial class MainWindow : Window
 {
     public MainWindow()

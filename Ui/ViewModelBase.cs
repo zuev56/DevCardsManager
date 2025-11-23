@@ -1,5 +1,5 @@
 ﻿using ReactiveUI;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui;
 
 public abstract class ViewModelBase : ReactiveObject;

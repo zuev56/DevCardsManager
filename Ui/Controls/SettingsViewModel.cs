@@ -8,7 +8,7 @@ using DevCardsManager.Models;
 using DevCardsManager.Services;
 using ReactiveUI;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui.Controls;
 
 public sealed class SettingsViewModel : ViewModelBase
 {

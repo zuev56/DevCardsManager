@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using ReactiveUI;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui.Controls;
 
 public abstract class ParameterViewModel : ViewModelBase
 {

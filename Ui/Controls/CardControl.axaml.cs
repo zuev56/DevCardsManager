@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using DevCardsManager.ViewModels;
+using Avalonia.Interactivity;
 
-namespace DevCardsManager.Controls;
+namespace DevCardsManager.Ui.Controls;
 
 public sealed partial class CardControl : UserControl
 {
@@ -19,4 +19,14 @@ public sealed partial class CardControl : UserControl
                 viewModel.SelectedCard = cardViewModel;
         }
     }
+
+    private void InfoButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (InfoPopup.IsOpen)
+            InfoPopup.Close();
+        else
+            InfoPopup.Open();
+    }
+
+    private void Button_OnClick(object? sender, RoutedEventArgs e) => InfoPopup.Close();
 }

@@ -2,7 +2,7 @@
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace DevCardsManager.Views.Converters;
+namespace DevCardsManager.Ui.Converters;
 
 public sealed class EqualsConverter : IValueConverter
 {

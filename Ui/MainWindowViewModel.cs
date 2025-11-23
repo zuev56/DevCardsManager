@@ -1,8 +1,9 @@
 ﻿using System;
 using DevCardsManager.Models;
 using DevCardsManager.Services;
+using DevCardsManager.Ui.Controls;
 
-namespace DevCardsManager.ViewModels;
+namespace DevCardsManager.Ui;
 
 public sealed class MainWindowViewModel : ViewModelBase
 {
@@ -23,13 +24,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         CardManagerViewModel = cardManagerViewModel;
         try
         {
-            _directoryWatcher.DirectoryChanged += path =>
-            {
-                if (path == Settings.AllCardsPath)
-                    CardManagerViewModel.ActualizeCardList();
-                else if (path == Settings.InsertedCardPath)
-                    CardManager.CopyInsertedCardToAllCardsDirIfNotExists();
-            };
             ApplySettingsOnStartup();
             SettingsViewModel.ActualizeTheme();
             _settingsManager.ParameterChanged += SettingsParameterChanged;

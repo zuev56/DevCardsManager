@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using ArgumentException = System.ArgumentException;
 
-namespace DevCardsManager.Views.Converters;
+namespace DevCardsManager.Ui.Converters;
 
 public sealed class ThemeValueConverter : MarkupExtension, IValueConverter
 {
