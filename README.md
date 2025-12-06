@@ -8,7 +8,7 @@
   - Временное прикладывание (через заданный интервал карта будет автоматически убрана)
 - Закрепление часто используемых карт в начале списка
 - Фильтрация по имени и UID
-- Просмотр базовой информацию о карте (модель карты, UID, CSN)
+- Просмотр базовой информацию о карте (модель карты, UID, CSN (Chip Serial Number))
 - Настройка вывода необходимых контролов на карту
 <img width="400" height="412" alt="image" src="https://github.com/user-attachments/assets/12e95144-df8d-497a-8275-f65e24238697" />
 <img width="400" height="413" alt="image" src="https://github.com/user-attachments/assets/d1cf0f4e-865d-4f36-a288-1ce2df60cdb4" />
