@@ -142,7 +142,7 @@ public sealed class CardManagerViewModel : ViewModelBase
 
             _cardManager.ActualizeCardList();
 
-            var allCards = _cardManager.Cards.Select(card => new CardViewModel(card, _cardManager, _logger)).ToList();
+            var allCards = _cardManager.Cards.Select(card => new CardViewModel(card, _cardManager, Settings, _logger)).ToList();
 
             // На случай, когда вставленную карту заменили в обход этой программы
             if (allCards.Count(c => c.IsInserted) > 1)

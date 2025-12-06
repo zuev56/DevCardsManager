@@ -20,11 +20,13 @@ public sealed class CardViewModel : ViewModelBase
     private readonly CardManager _cardManager;
     private readonly Logger _logger;
 
-    public CardViewModel(Card card, CardManager cardManager, Logger logger)
+    public CardViewModel(Card card, CardManager cardManager, Settings settings, Logger logger)
     {
         _card = card;
         _cardManager = cardManager;
+        Settings = settings;
         _logger = logger;
+
         UpdateCardInfo();
 
         InsertCommand = new AsyncRelayCommand(InsertAsync);
@@ -40,6 +42,7 @@ public sealed class CardViewModel : ViewModelBase
     public bool IsInserted => _card.IsInserted;
     [Reactive]
     public bool IsSelected { get; set; }
+    public Settings Settings { get; }
 
     public string UidString { get; private set; }
     public string ChipSerialNumber { get; private set; }

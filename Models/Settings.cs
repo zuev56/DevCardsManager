@@ -16,12 +16,6 @@ public sealed class Settings
     [DisplayName("Каталог со вставленной картой")]
     public required string InsertedCardPath { get; set; }
 
-    [DisplayName("Интервал между заменой карт, мс")]
-    public required int ReplaceCardDelayMs { get; set; }
-
-    [DisplayName("Интервал временного прикладывания карты, мс")]
-    public required int InsertCardOnTimeMs { get; set; }
-
     [DisplayName("Сортировка в алфавитном порядке")]
     public bool SortAscending { get; set; } = true;
 
@@ -31,7 +25,7 @@ public sealed class Settings
     [DisplayName("Отображать поверх остальных окон")]
     public bool KeepOnTop { get; set; }
 
-    [DisplayName("% прозрачности, когда поверх остальных окон")]
+    [DisplayName("% прозрачности неактивного окна")]
     public int KeepOnTopTransparency
     {
         get => _keepOnTopTransparency > 100 ? 100 : _keepOnTopTransparency < 0 ? 0 : _keepOnTopTransparency;
@@ -41,11 +35,23 @@ public sealed class Settings
     [DisplayName("Сохранять изменения на карте после её использования")]
     public bool SaveCardChangesOnReturn { get; set; } = true;
 
+    [DisplayName("Интервал между заменой карт, мс")]
+    public required int ReplaceCardDelayMs { get; set; }
+
+    [DisplayName("Отображать кнопку временного прикладывания карты")]
+    public bool ShowInsertCardOnTimeButton { get; set; }
+
+    [DisplayName("Интервал временного прикладывания карты, мс")]
+    public required int InsertCardOnTimeMs { get; set; }
+
+    [DisplayName("Отображать кнопку для вывода детальной информации по карте")]
+    public bool ShowCardInfoButton { get; set; }
+
+    [DisplayName("Отображать UID карты")]
+    public bool ShowCardUid { get; set; }
+
     [DisplayName("Детальное логирование")]
     public bool DetailedLogging { get; set; }
-
-    // [DisplayName("Включить возможность прикладывания карты на время")]
-    // public bool AllowTemporarilyAttach { get; set; }
 
     [Ignore]
     public List<string> PinnedCards { get; set; } = [];
