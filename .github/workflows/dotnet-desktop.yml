@@ -69,30 +69,30 @@ jobs:
     - name: Publish for Windows (Windows runner)
       if: runner.os == 'Windows'
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Windows
-        Remove-Item ./bin/DevCardsManager_Windows/*.pdb
-        Compress-Archive -Path ./bin/DevCardsManager_Windows/* -DestinationPath ./bin/DevCardsManager_Windows.zip
+        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Windows_SelfContained
+        Remove-Item ./bin/DevCardsManager_Windows_SelfContained/*.pdb
+        Compress-Archive -Path ./bin/DevCardsManager_Windows_SelfContained/* -DestinationPath ./bin/DevCardsManager_Windows_SelfContained.zip
 
     - name: Publish for Linux (Linux runner)
       if: runner.os == 'Linux'
       run: |
-        dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux
-        rm -f ./bin/DevCardsManager_Linux/*.pdb
-        zip -r ./bin/DevCardsManager_Linux.zip ./bin/DevCardsManager_Linux/*
+        dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./bin/DevCardsManager_Linux_SelfContained
+        rm -f ./bin/DevCardsManager_Linux_SelfContained/*.pdb
+        zip -r ./bin/DevCardsManager_Linux_SelfContained.zip ./bin/DevCardsManager_Linux_SelfContained/*
 
     - name: Upload Windows Artifact
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
-        name: DevCardsManager_Windows
-        path: ./bin/DevCardsManager_Windows.zip
+        name: DevCardsManager_Windows_SelfContained
+        path: ./bin/DevCardsManager_Windows_SelfContained.zip
 
     - name: Upload Linux Artifact
       if: runner.os == 'Linux'
       uses: actions/upload-artifact@v4
       with:
-        name: DevCardsManager_Linux
-        path: ./bin/DevCardsManager_Linux.zip
+        name: DevCardsManager_Linux_SelfContained
+        path: ./bin/DevCardsManager_Linux_SelfContained.zip
 
   create-release:
     needs: build
@@ -118,7 +118,7 @@ jobs:
         name: Release ${{ github.ref_name }}
         body: "DevCardsManager ${{ github.ref_name }}"
         files: |
-          artifacts/DevCardsManager_Linux/DevCardsManager_Linux.zip
-          artifacts/DevCardsManager_Windows/DevCardsManager_Windows.zip
+          artifacts/DevCardsManager_Linux_SelfContained/DevCardsManager_Linux_SelfContained.zip
+          artifacts/DevCardsManager_Windows_SelfContained/DevCardsManager_Windows_SelfContained.zip
         draft: false
         prerelease: false
