@@ -1,19 +1,20 @@
-## ПО для работы с образами карт Mifare.
+## ПО для работы с образами карт Mifare (Windows/Linux).
 - Эмитирует прикладывание карты (перемещение карты в заданный каталог из каталога со всеми картами)
   - Копирование в буфер обмена имени карты при прикладывании (удобно, когда имя карты является её паролем)
   - Сохранение или сброс внесённых изменений при убирании карты в зависимости от заданых настроек
   - Временное прикладывание (через заданный интервал кара будет автоматически убрана)
-  - Закрепление часто используемых карт в начале списка
-  - Фильтрация по имени и UID
+- Закрепление часто используемых карт в начале списка
+- Фильтрация по имени и UID
 - Просмотр базовую информацию о карте (Модель карты, UID, CSN)
 - Настройка вывода необходимых контролов на карту
-<img width="848" height="874" alt="image" src="https://github.com/user-attachments/assets/12e95144-df8d-497a-8275-f65e24238697" />
-<img width="852" height="869" alt="image" src="https://github.com/user-attachments/assets/d4e28e50-7559-4ed4-9315-6fdbc260935d" />
-<img width="854" height="1434" alt="image" src="https://github.com/user-attachments/assets/d7d60316-33cb-4239-87c9-65f8c0b852b6" />
+<img width="400" height="412" alt="image" src="https://github.com/user-attachments/assets/12e95144-df8d-497a-8275-f65e24238697" />
+<img width="400" height="413" alt="image" src="https://github.com/user-attachments/assets/d1cf0f4e-865d-4f36-a288-1ce2df60cdb4" />
+<img width="400" height="671" alt="image" src="https://github.com/user-attachments/assets/d7d60316-33cb-4239-87c9-65f8c0b852b6" />
 
 ### Раздел "Утилиты"
 - Добавлен функционал для работы с логами, скопированными в буфер обмена
   - Удаление из лога строк с заданными вхождениями текста
   - Удаление из лога строк, в которых нет заданых вхождение
+<img width="400" height="412" alt="image" src="https://github.com/user-attachments/assets/248cd6c2-f6bc-4c2e-9727-6f83ff5b30fe" />
 
   
