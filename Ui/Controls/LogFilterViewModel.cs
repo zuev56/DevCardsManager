@@ -12,6 +12,7 @@ using ReactiveUI.Fody.Helpers;
 
 namespace DevCardsManager.Ui.Controls;
 
+// TODO: Добавить удаление вхождений (Regex) из строк
 public sealed class LogFilterViewModel : ViewModelBase
 {
     private readonly SettingsManager _settingsManager;
